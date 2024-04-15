@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import IconStar from './components/icons/IconStar.vue';
 
 interface Operator {
@@ -30,6 +30,11 @@ interface AssignedTimeslot {
   timeslotId: number
 }
 
+interface Plan {
+  monthName: string,
+  workDays: WorkDay[]
+}
+
 interface WorkDay {
   date: number,
   plan: AssignedTimeslot[],
@@ -38,17 +43,15 @@ interface WorkDay {
 }
 
 const operators: Operator[] = [
-  {id: 1, name: 'Bob', color: '#aa50f4'},
-  {id: 2, name: 'Andrew', color: '#32bf2f', notAssignableSlots: [1]},
-  {id: 3, name: 'Tim', color: '#2f3ee2'},
-  {id: 4, name: 'Joe', color: '#6a3ee2'}
+  {id: 1, name: 'Marti', color: '#aa50f4'},
+  {id: 2, name: 'Alice', color: '#32bf2f', notAssignableSlots: [1]},
+  {id: 3, name: 'Betti', color: '#2f3ee2'},
 ];
 
 const timeslots: Timeslot[] = [
   {id: 1, name: 'mattina', timeRanges: [{start: 6, end: 14}]},
   {id: 2, name: 'giornata', timeRanges: [{start: 11, end: 15}, {start: 18, end: 20}]},
   {id: 3, name: 'sera', timeRanges: [{start: 15, end: 22}]},
-  {id: 4, name: 'sera inoltrata', timeRanges: [{start: 20, end: 24}]}
 ];
 
 const days: Day[] = [
@@ -76,20 +79,23 @@ const months: Month[] = [
   {id: 11, name: 'Dicembre'},
 ];
 
+function getMonthName(month: number): string {
+  return months.find(m => m.id === month)?.name || '';
+}
+
 const offDays: number[] = [2];
 
 const today = dayjs();
-const todayMonthName = months.find(m => m.id === today.month())?.name;
-const plan: WorkDay[] = [];
+const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
 const weeksToPlan = 7;
 
 // Empty days are days not considered in the plan, mainly because they are before the plan start
-function addEmptyDaysToWeekPlan() {
+function addEmptyDaysToWeekPlan(plan: Plan, fromDay: Dayjs) {
   let emptyDaysAdded = 0;
-  let yesterdayDayNumber = today.subtract(1, 'd').day();
+  let yesterdayDayNumber = fromDay.subtract(1, 'd').day();
 
   while(yesterdayDayNumber > 0) {
-    plan.push({date: -1, plan: [], isOff: false, isStartOfRound: false});
+    plan.workDays.push({date: -1, plan: [], isOff: false, isStartOfRound: false});
     yesterdayDayNumber--;
     emptyDaysAdded++;
   }
@@ -154,40 +160,49 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTim
   return containsNotAssignableTimeslot(assignedTimeslots) ? generateNextWeekPlan(assignedTimeslots) : assignedTimeslots;
 }
 
-function generatePlan() {
+function generatePlans() {
   let day = today;
   let weeksPlanned = 0;
   let weekPlan = generateFirstWeekPlan();
+  let month = today.month();
+  let plan = plans[0];
 
   while(weeksPlanned < weeksToPlan){
     let weekDaysPlanned = 0;
 
     if(weeksPlanned === 0)
-      weekDaysPlanned += addEmptyDaysToWeekPlan();
+      weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
 
     while(weekDaysPlanned < 7) {
-      const isStartOfRound = plan.length === 0 ? true : plan[plan.length - 1].isOff || plan[plan.length - 1].date === -1;
+      const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
       const isOff = offDays.length === 0 ? false : offDays.includes(day.day());
   
       const workDay: WorkDay = {
         date: day.date(),
         plan: weekPlan,
         isOff,
-        isStartOfRound
+        isStartOfRound,
       }
 
-      plan.push(workDay);
+      plan.workDays.push(workDay);
       weekDaysPlanned++;
       day = day.add(1, 'd');
+
+      if(month !== day.month()) {
+        month = day.month();
+        plans.push({monthName: getMonthName(month), workDays: []});
+        plan = plans[plans.length - 1];
+        addEmptyDaysToWeekPlan(plan, day);
+      }
     }
 
     weekDaysPlanned = 0;
     weeksPlanned++;
     weekPlan = generateNextWeekPlan(weekPlan);
-  };
+  }
 }
 
-generatePlan();
+generatePlans();
 
 </script>
 
@@ -245,10 +260,9 @@ generatePlan();
       <b>todo scelta del numero di settimane da pianificare</b>
     </div>
 
-    <div class="flex justify-center my-8">
-      <div class="border rounded shadow-lg">
-        <div class="text-center">
-          <span>{{ todayMonthName }}</span>
+    <div class="border rounded shadow-lg pt-4" v-for="plan in plans">
+        <div class="text-center text-xl font-bold">
+          <span>{{ plan.monthName }}</span>
         </div>
         <br>
         <div class="flex flex-col">
@@ -258,8 +272,8 @@ generatePlan();
             </div>
           </div>
 
-          <div class="grid grid-cols-7 auto-rows-auto">
-            <div class="py-2 w-32 h-auto min-h-32 border border-gray-200 flex" v-for="day in plan">
+          <div class="grid grid-cols-7 auto-rows-auto w-fit">
+            <div class="py-2 w-32 h-auto min-h-32 border border-gray-200 flex" v-for="day in plan.workDays">
               <div class="w-full flex flex-col" v-if="day.date > 0 && !day.isOff">
                 <div class="pl-2"><span>{{ day.date }}</span></div>
                 <div class="flex">
@@ -286,6 +300,5 @@ generatePlan();
           </div>
         </div>
       </div>
-    </div>
   </main>
 </template>
