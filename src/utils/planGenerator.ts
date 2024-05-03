@@ -5,8 +5,10 @@ import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
 import type { WorkDay } from '@/model/WorkDay';
 import { useOperatorStore } from '@/stores/operator';
+import { useTimeslotStore } from '@/stores/timeslot';
 
 const operatorStore = useOperatorStore();
+const timeslotStore = useTimeslotStore();
 
 const months: Month[] = [
     {id: 0, name: 'Gennaio'},
@@ -58,7 +60,7 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[]): boolean {
     const assignedTimeslots: AssignedTimeslot[] = [];
 
     // operators and timeslots arrays MUST coincide in the size
-    timeslots.forEach((t, index) => {
+    timeslotStore.timeslots.forEach((t, index) => {
         assignedTimeslots.push({operatorId: operatorStore.operators[index].id, timeslotId: t.id});
     });
 
@@ -90,7 +92,7 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTim
 
     // operators and timeslots arrays MUST coincide in the size
     // TODO: ensure that timeslot are entered by first to last in the day time
-    timeslots.forEach((t, index) => {
+    timeslotStore.timeslots.forEach((t, index) => {
         assignedTimeslots.push({operatorId: shiftedOperators[index].id, timeslotId: t.id});
     });
 
