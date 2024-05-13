@@ -101,7 +101,10 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTim
 }
 
 // TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
-function generatePlans() {
+export function generatePlans(weeksToPlan = 4) {
+    const today = dayjs();
+    const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
+
     let day = dayjs();
     let weeksPlanned = 0;
     let weekPlan = generateFirstWeekPlan();

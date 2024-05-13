@@ -2,6 +2,8 @@
 import IconStar from './components/icons/IconStar.vue';
 import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
+import { weekDays } from './constants';
+import { generatePlans } from './utils/planGenerator';
 
 const operatorStore = useOperatorStore();
 operatorStore.add({name: 'Marti', color: '#aa50f4'});
@@ -13,23 +15,10 @@ timeslotStore.add({name: 'mattina', timeRanges: [{start: 6, end: 14}]});
 timeslotStore.add({name: 'giornata', timeRanges: [{start: 11, end: 15}, {start: 18, end: 20}]});
 timeslotStore.add({name: 'sera', timeRanges: [{start: 15, end: 22}]});
   
-  const days: Day[] = [
-    {id: 1, name: 'Lunedí'},
-    {id: 2, name: 'Martedí'},
-    {id: 3, name: 'Mercoledí'},
-    {id: 4, name: 'Giovedí'},
-    {id: 5, name: 'Venerdí'},
-    {id: 6, name: 'Sabato'},
-    {id: 0, name: 'Domenica'},
-  ];
+// TODO store per i giorni di riposo che viene utilizzato nella funzione generatePlans, qui rimosso
+const offDays: number[] = [2];
 
-  const offDays: number[] = [2];
-
-const today = dayjs();
-const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
-const weeksToPlan = 16;
-
-generatePlans();
+generatePlans(16);
 
 </script>
 
@@ -54,13 +43,13 @@ generatePlans();
     <div class="p-4" style="border: 1px solid blue">
       <b>Fascie orarie</b>
       <br>
-      <div v-for="t in timeslots"> <b>{{ t.id }}</b>: {{ t.name }} -> <span v-for="r in t.timeRanges"> {{ r.start }} / {{ r.end }} </span> </div>
+      <div v-for="t in timeslotStore.timeslots"> <b>{{ t.id }}</b>: {{ t.name }} -> <span v-for="r in t.timeRanges"> {{ r.start }} / {{ r.end }} </span> </div>
     </div>
 
     <div class="p-4" style="border: 1px solid purple">
       <b>Giorni di riposo</b>
       <br>
-      <div v-for="d in offDays"> {{ days.find(weekDay => weekDay.id === d)?.name }} </div>
+      <div v-for="d in offDays"> {{ weekDays.find(weekDay => weekDay.id === d)?.name }} </div>
     </div>
 
     <div class="p-4" style="border: 1px solid purple">
@@ -69,7 +58,7 @@ generatePlans();
       <div v-for="o in operatorStore.operators"> 
         <div v-if="o.notAssignableSlots">
           <div v-for="sId in o.notAssignableSlots">
-            {{ o.name }} -> {{ timeslots.find(t => t.id === sId)?.name }}
+            {{ o.name }} -> {{ timeslotStore.timeslots.find(t => t.id === sId)?.name }}
           </div>
         </div>
       </div>
@@ -98,7 +87,7 @@ generatePlans();
         <br>
         <div class="flex flex-col">
           <div class="flex text-blue-600">
-            <div class="p-2 w-32 h-12 text-center" v-for="day in days">
+            <div class="p-2 w-32 h-12 text-center" v-for="day in weekDays">
               <b>{{ day.name }}</b>
             </div>
           </div>
@@ -117,8 +106,8 @@ generatePlans();
                     <div
                       class="font-bold w-full h-6 pl-2 text-white"
                       v-for="slot in day.plan"
-                      :style="'background-color: ' + operators.find(o => o.id === slot.operatorId)?.color">
-                      <span v-if="day.isStartOfRound">{{ operators.find(o => o.id === slot.operatorId)?.name }}</span>
+                      :style="'background-color: ' + operatorStore.operators.find(o => o.id === slot.operatorId)?.color">
+                      <span v-if="day.isStartOfRound">{{ operatorStore.operators.find(o => o.id === slot.operatorId)?.name }}</span>
                     </div>
                   </div>
                 </div>
