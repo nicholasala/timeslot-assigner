@@ -3,14 +3,8 @@ import type { Plan } from '@/model/Plan';
 import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
 import type { WorkDay } from '@/model/WorkDay';
-import { useOperatorStore } from '@/stores/operator';
-import { useTimeslotStore } from '@/stores/timeslot';
-import { useOffDaysStore } from '@/stores/offDays';
 import { months } from '@/constants';
-
-const operatorStore = useOperatorStore();
-const timeslotStore = useTimeslotStore();
-const offDaysStore = useOffDaysStore();
+import type { Timeslot } from '@/model/Timeslot';
 
 function getMonthName(month: number): string {
     return months.find(m => m.id === month)?.name || '';
@@ -18,13 +12,13 @@ function getMonthName(month: number): string {
 
 // TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
 // TODO: capire se trasformarla in una funzione pura che non usa gli store (cosí da rimuoverli da questo script)
-export function generatePlans(weeksToPlan = 4): Plan[] {
+export function generatePlans(operators: Operator[], timeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
     const today = dayjs();
     const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
 
     let day = dayjs();
     let weeksPlanned = 0;
-    let weekPlan = generateFirstWeekPlan();
+    let weekPlan = generateFirstWeekPlan(operators, timeslots);
     let month = day.month();
     let plan = plans[0];
 
@@ -36,7 +30,7 @@ export function generatePlans(weeksToPlan = 4): Plan[] {
 
         while(weekDaysPlanned < 7) {
             const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
-            const isOff = offDaysStore.offDays.length === 0 ? false : offDaysStore.offDays.includes(day.day());
+            const isOff = offDays.length === 0 ? false : offDays.includes(day.day());
 
             const workDay: WorkDay = {
                 date: day.date(),
@@ -59,7 +53,7 @@ export function generatePlans(weeksToPlan = 4): Plan[] {
 
         weekDaysPlanned = 0;
         weeksPlanned++;
-        weekPlan = generateNextWeekPlan(weekPlan);
+        weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
     }
 
     return plans;
@@ -79,25 +73,24 @@ function addEmptyDaysToWeekPlan(plan: Plan, fromDay: Dayjs) {
     return emptyDaysAdded;
 }
 
-function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[]): boolean {
+function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: Operator[]): boolean {
     for(let i = 0; i < weekPlan.length; i++) {
         const assignedTimeslot = weekPlan[i];
-        const operator = operatorStore.operators.find(o => o.id === assignedTimeslot.operatorId);
+        const operator = operators.find(o => o.id === assignedTimeslot.operatorId);
 
         if(operator?.notAssignableSlots && operator.notAssignableSlots.find(sId => sId === assignedTimeslot.timeslotId) !== undefined)
-        return true;
+            return true;
     }
 
     return false;
-    }
+}
 
-    // generate first week plan
-    function generateFirstWeekPlan() : AssignedTimeslot[]{
+function generateFirstWeekPlan(operators: Operator[], timeslots: Timeslot[]) : AssignedTimeslot[]{
     const assignedTimeslots: AssignedTimeslot[] = [];
 
     // operators and timeslots arrays MUST coincide in the size
-    timeslotStore.timeslots.forEach((t, index) => {
-        assignedTimeslots.push({operatorId: operatorStore.operators[index].id, timeslotId: t.id});
+    timeslots.forEach((t, index) => {
+        assignedTimeslots.push({operatorId: operators[index].id, timeslotId: t.id});
     });
 
     return assignedTimeslots;
@@ -105,15 +98,15 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[]): boolean {
 
 // Generate the plan of a week considering the previous plan
 // The operators shift will be of one each time, but considering not assignable slots wich could lead to extra shifts
-function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTimeslot[] {
+function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[], operators: Operator[], timeslots: Timeslot[]): AssignedTimeslot[] {
     const assignedTimeslots: AssignedTimeslot[] = [];
     const shiftedOperators: Operator[] = [];
 
     previousWeekPlan.forEach(p => {
-        const operator = operatorStore.operators.find(o => o.id === p.operatorId);
+        const operator = operators.find(o => o.id === p.operatorId);
 
         if(operator)
-        shiftedOperators.push(operator);
+            shiftedOperators.push(operator);
     });
 
     let extractedOperator = shiftedOperators[0];
@@ -128,10 +121,11 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTim
 
     // operators and timeslots arrays MUST coincide in the size
     // TODO: ensure that timeslot are entered by first to last in the day time
-    timeslotStore.timeslots.forEach((t, index) => {
+    timeslots.forEach((t, index) => {
         assignedTimeslots.push({operatorId: shiftedOperators[index].id, timeslotId: t.id});
     });
 
     // TODO: avoid possible infinite loop
-    return containsNotAssignableTimeslot(assignedTimeslots) ? generateNextWeekPlan(assignedTimeslots) : assignedTimeslots;
+    return containsNotAssignableTimeslot(assignedTimeslots, operators) ?
+        generateNextWeekPlan(assignedTimeslots, operators, timeslots) : assignedTimeslots;
 }
