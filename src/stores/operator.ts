@@ -8,12 +8,9 @@ export const useOperatorStore = defineStore('operator', {
       ids: 0
     }
   },
-  getters: {
-    operators: (state) => state.operators
-  },
   actions: {
     add(operator: Omit<Operator, 'id'>) {
       this.operators.push({id: this.ids++, ...operator});
-    },
+    }
   },
 })

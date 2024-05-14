@@ -7,9 +7,6 @@ export const useOffDaysStore = defineStore('offDays', {
       offDays: [] as number[]
     }
   },
-  getters: {
-    offDays: (state) => state.offDays
-  },
   actions: {
     add(day: Day) {
       this.offDays.push(day.id);

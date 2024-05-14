@@ -8,9 +8,6 @@ export const useTimeslotStore = defineStore('timeslot', {
       ids: 0
     }
   },
-  getters: {
-    timeslots: (state) => state.timeslots
-  },
   actions: {
     add(timeslot: Omit<Timeslot, 'id'>) {
       this.timeslots.push({id: this.ids++, ...timeslot});

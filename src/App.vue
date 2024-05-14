@@ -24,7 +24,7 @@ const offDaysStore = useOffDaysStore();
 const martedí = weekDays.find(wD => wD.name === 'Martedí');
 if(martedí) offDaysStore.add(martedí);
 
-const plans: Plan[] = generatePlans(16);
+const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 16);
 
 </script>
 
@@ -55,7 +55,7 @@ const plans: Plan[] = generatePlans(16);
     <div class="p-4" style="border: 1px solid purple">
       <b>Giorni di riposo</b>
       <br>
-      <div v-for="d in offDays"> {{ weekDays.find(weekDay => weekDay.id === d)?.name }} </div>
+      <div v-for="d in offDaysStore.offDays"> {{ weekDays.find(weekDay => weekDay.id === d)?.name }} </div>
     </div>
 
     <div class="p-4" style="border: 1px solid purple">
