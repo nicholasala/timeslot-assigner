@@ -92,7 +92,8 @@ function generateFirstWeekPlan(operators: Operator[], timeslots: Timeslot[]) : A
         assignedTimeslots.push({operatorId: operators[index].id, timeslotId: t.id});
     });
 
-    return assignedTimeslots;
+    return containsNotAssignableTimeslot(assignedTimeslots, operators) ?
+        generateNextWeekPlan(assignedTimeslots, operators, timeslots) : assignedTimeslots;
 }
 
 // Generate the plan of a week considering the previous plan

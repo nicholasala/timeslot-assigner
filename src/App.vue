@@ -11,7 +11,7 @@ import type { Plan } from './model/Plan';
 // OPERATORI
 const operatorStore = useOperatorStore();
 operatorStore.add({name: 'Marti', color: '#aa50f4'});
-operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [1]});
+operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [0]});
 operatorStore.add({name: 'Betti', color: '#2f3ee2'});
 
 // TURNI
@@ -25,7 +25,7 @@ const offDaysStore = useOffDaysStore();
 const martedí = weekDays.find(wD => wD.name === 'Martedí');
 if(martedí) offDaysStore.add(martedí);
 
-const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 16);
+const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
 
 </script>
 
