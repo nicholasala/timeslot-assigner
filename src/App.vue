@@ -7,6 +7,7 @@ import { weekDays } from './constants';
 import { generatePlans } from './utils/planGenerator';
 import type { Plan } from './model/Plan';
 
+// TODO OPERATORI E TURNI DEVONO AVERE LO STESSO NUMERO
 // OPERATORI
 const operatorStore = useOperatorStore();
 operatorStore.add({name: 'Marti', color: '#aa50f4'});

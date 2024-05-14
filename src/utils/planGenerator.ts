@@ -6,16 +6,11 @@ import type { WorkDay } from '@/model/WorkDay';
 import { months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
 
-function getMonthName(month: number): string {
-    return months.find(m => m.id === month)?.name || '';
-}
-
 // TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
 // TODO: capire se trasformarla in una funzione pura che non usa gli store (cosí da rimuoverli da questo script)
 export function generatePlans(operators: Operator[], timeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
     const today = dayjs();
     const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
-
     let day = dayjs();
     let weeksPlanned = 0;
     let weekPlan = generateFirstWeekPlan(operators, timeslots);
@@ -26,7 +21,7 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
         let weekDaysPlanned = 0;
 
         if(weeksPlanned === 0)
-        weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
+            weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
 
         while(weekDaysPlanned < 7) {
             const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
@@ -57,6 +52,10 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
     }
 
     return plans;
+}
+
+function getMonthName(month: number): string {
+    return months.find(m => m.id === month)?.name || '';
 }
 
 // Empty days are days not considered in the plan, mainly because they are before the plan start
