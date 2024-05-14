@@ -2,23 +2,29 @@
 import IconStar from './components/icons/IconStar.vue';
 import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
+import { useOffDaysStore } from './stores/offDays';
 import { weekDays } from './constants';
 import { generatePlans } from './utils/planGenerator';
+import type { Plan } from './model/Plan';
 
+// OPERATORI
 const operatorStore = useOperatorStore();
 operatorStore.add({name: 'Marti', color: '#aa50f4'});
 operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [1]});
 operatorStore.add({name: 'Betti', color: '#2f3ee2'});
 
+// TURNI
 const timeslotStore = useTimeslotStore();
 timeslotStore.add({name: 'mattina', timeRanges: [{start: 6, end: 14}]});
 timeslotStore.add({name: 'giornata', timeRanges: [{start: 11, end: 15}, {start: 18, end: 20}]});
 timeslotStore.add({name: 'sera', timeRanges: [{start: 15, end: 22}]});
-  
-// TODO store per i giorni di riposo che viene utilizzato nella funzione generatePlans, qui rimosso
-const offDays: number[] = [2];
 
-generatePlans(16);
+// GIORNI DI RIPOSO
+const offDaysStore = useOffDaysStore();
+const martedí = weekDays.find(wD => wD.name === 'Martedí');
+if(martedí) offDaysStore.add(martedí);
+
+const plans: Plan[] = generatePlans(16);
 
 </script>
 

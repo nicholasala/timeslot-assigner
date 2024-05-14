@@ -1,32 +1,68 @@
 import dayjs, { Dayjs } from 'dayjs';
-import type { Month } from '@/model/Month';
 import type { Plan } from '@/model/Plan';
 import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
 import type { WorkDay } from '@/model/WorkDay';
 import { useOperatorStore } from '@/stores/operator';
 import { useTimeslotStore } from '@/stores/timeslot';
+import { useOffDaysStore } from '@/stores/offDays';
+import { months } from '@/constants';
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
-
-const months: Month[] = [
-    {id: 0, name: 'Gennaio'},
-    {id: 1, name: 'Febbraio'},
-    {id: 2, name: 'Marzo'},
-    {id: 3, name: 'Aprile'},
-    {id: 4, name: 'Maggio'},
-    {id: 5, name: 'Giugno'},
-    {id: 6, name: 'Luglio'},
-    {id: 7, name: 'Agosto'},
-    {id: 8, name: 'Settembre'},
-    {id: 9, name: 'Ottobre'},
-    {id: 10, name: 'Novembre'},
-    {id: 11, name: 'Dicembre'}
-];
+const offDaysStore = useOffDaysStore();
 
 function getMonthName(month: number): string {
     return months.find(m => m.id === month)?.name || '';
+}
+
+// TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
+// TODO: capire se trasformarla in una funzione pura che non usa gli store (cosí da rimuoverli da questo script)
+export function generatePlans(weeksToPlan = 4): Plan[] {
+    const today = dayjs();
+    const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
+
+    let day = dayjs();
+    let weeksPlanned = 0;
+    let weekPlan = generateFirstWeekPlan();
+    let month = day.month();
+    let plan = plans[0];
+
+    while(weeksPlanned < weeksToPlan){
+        let weekDaysPlanned = 0;
+
+        if(weeksPlanned === 0)
+        weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
+
+        while(weekDaysPlanned < 7) {
+            const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
+            const isOff = offDaysStore.offDays.length === 0 ? false : offDaysStore.offDays.includes(day.day());
+
+            const workDay: WorkDay = {
+                date: day.date(),
+                plan: weekPlan,
+                isOff,
+                isStartOfRound,
+            }
+
+            plan.workDays.push(workDay);
+            weekDaysPlanned++;
+            day = day.add(1, 'd');
+
+            if(month !== day.month()) {
+                month = day.month();
+                plans.push({monthName: getMonthName(month), workDays: []});
+                plan = plans[plans.length - 1];
+                addEmptyDaysToWeekPlan(plan, day);
+            }
+        }
+
+        weekDaysPlanned = 0;
+        weeksPlanned++;
+        weekPlan = generateNextWeekPlan(weekPlan);
+    }
+
+    return plans;
 }
 
 // Empty days are days not considered in the plan, mainly because they are before the plan start
@@ -98,50 +134,4 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[]): AssignedTim
 
     // TODO: avoid possible infinite loop
     return containsNotAssignableTimeslot(assignedTimeslots) ? generateNextWeekPlan(assignedTimeslots) : assignedTimeslots;
-}
-
-// TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
-export function generatePlans(weeksToPlan = 4) {
-    const today = dayjs();
-    const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
-
-    let day = dayjs();
-    let weeksPlanned = 0;
-    let weekPlan = generateFirstWeekPlan();
-    let month = day.month();
-    let plan = plans[0];
-
-    while(weeksPlanned < weeksToPlan){
-        let weekDaysPlanned = 0;
-
-        if(weeksPlanned === 0)
-        weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
-
-        while(weekDaysPlanned < 7) {
-        const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
-        const isOff = offDays.length === 0 ? false : offDays.includes(day.day());
-
-        const workDay: WorkDay = {
-            date: day.date(),
-            plan: weekPlan,
-            isOff,
-            isStartOfRound,
-        }
-
-        plan.workDays.push(workDay);
-        weekDaysPlanned++;
-        day = day.add(1, 'd');
-
-        if(month !== day.month()) {
-            month = day.month();
-            plans.push({monthName: getMonthName(month), workDays: []});
-            plan = plans[plans.length - 1];
-            addEmptyDaysToWeekPlan(plan, day);
-        }
-        }
-
-        weekDaysPlanned = 0;
-        weeksPlanned++;
-        weekPlan = generateNextWeekPlan(weekPlan);
-    }
 }
