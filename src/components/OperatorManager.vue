@@ -1,14 +1,36 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useOperatorStore } from '../stores/operator';
 
 const operatorStore = useOperatorStore();
+const addOperatorModal = ref(null);
+const operatorName = ref(null);
+const operatorColors = ['#aa50f4', '#efa823', '#2a23ef', '#32bf2f', '#ef3123'];
+let colorCursor = 0;
 
-// operatorStore.add({name: 'Marti', color: '#aa50f4'});
 // operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [0]});
-// operatorStore.add({name: 'Betti', color: '#2f3ee2'});
 
 function addOperator() {
-  operatorStore.add({name: 'Marti', color: '#aa50f4'});
+  if(operatorName.value?.value) {
+    operatorStore.add({name: operatorName.value?.value, color: nextColor()});
+    operatorName.value.value = '';
+  } else {
+    // TODO: mostrare errore se il nome inserito é vuoto
+  }
+}
+
+function showAddOperatorModal() {
+  addOperatorModal.value?.showModal();
+}
+
+function nextColor(): string {
+  const color = operatorColors[colorCursor];
+  colorCursor++;
+
+  if(colorCursor === operatorColors.length)
+    colorCursor = 0;
+
+  return color;
 }
 
 </script>
@@ -25,6 +47,19 @@ function addOperator() {
       <div>{{ o.name }}</div> 
     </div>
     </div>
-    <button class="btn btn-primary" v-on:click="addOperator">Aggiungi</button>
+    <button class="btn btn-primary" @click="showAddOperatorModal">Aggiungi</button>
   </div>
+
+  <dialog ref="addOperatorModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Crea operatore</h3>
+      <input ref="operatorName" type="text" placeholder="Nome operatore" class="input input-bordered w-full max-w-xs" />
+      
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn" @click="addOperator">Crea</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
 </template>
