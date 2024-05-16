@@ -16,7 +16,7 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
     let monthPlan = plans[0];
     addEmptyDaysToMonthPlan(monthPlan, day);
 
-    while(daysPlanned <= (weeksToPlan * 7)) {
+    while(daysPlanned < (weeksToPlan * 7)) {
         monthPlan.workDays.push({
             date: day.date(),
             plan: weekPlan,
@@ -24,7 +24,6 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
             isStartOfRound: day.day() === startOfRoundDay || daysPlanned === 0,
         });
 
-        // prepare data for next day
         day = day.add(1, 'd');
         daysPlanned++;
 

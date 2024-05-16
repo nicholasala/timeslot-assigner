@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import IconStar from './components/icons/IconStar.vue';
-import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
 import { useOffDaysStore } from './stores/offDays';
 import { weekDays } from './constants';
 import { generatePlans } from './utils/planGenerator';
 import type { Plan } from './model/Plan';
+import OperatorManager from './components/OperatorManager.vue';
 
+// TODO scelta delle fasce associate agli operatori alla partenza
 // TODO OPERATORI E TURNI DEVONO AVERE LO STESSO NUMERO
-// OPERATORI
-const operatorStore = useOperatorStore();
-operatorStore.add({name: 'Marti', color: '#aa50f4'});
-operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [0]});
-operatorStore.add({name: 'Betti', color: '#2f3ee2'});
+// TODO click su turno permette di invertirlo con un altro operatore in quella settimana
+// TODO scelta del numero di settimane da pianificare
+// TODO scelta del giorno di partenza (default oggi)
+
 
 // TURNI
 const timeslotStore = useTimeslotStore();
@@ -25,7 +25,8 @@ const offDaysStore = useOffDaysStore();
 const martedí = weekDays.find(wD => wD.name === 'Martedí');
 if(martedí) offDaysStore.add(martedí);
 
-const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
+// const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
+const plans: Plan[] = [];
 
 </script>
 
@@ -34,58 +35,8 @@ const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.times
     Timeslot assigner
   </header>
 
-  <br>
-
   <main>
-    <div class="p-4" style="border: 1px solid green">
-      <b>Operatori</b>
-      <br>
-      <div class="flex" v-for="o in operatorStore.operators">
-        <div class="h-4 w-4 rounded mx-2" :style="'background-color: ' + o.color"></div>
-        <div>{{ o.name }}</div> 
-      </div>
-      <button class="btn btn-primary">Aggiungi</button>
-    </div>
-
-    <div class="p-4" style="border: 1px solid blue">
-      <b>Fascie orarie</b>
-      <br>
-      <div v-for="t in timeslotStore.timeslots"> <b>{{ t.id }}</b>: {{ t.name }} -> <span v-for="r in t.timeRanges"> {{ r.start }} / {{ r.end }} </span> </div>
-    </div>
-
-    <div class="p-4" style="border: 1px solid purple">
-      <b>Giorni di riposo</b>
-      <br>
-      <div v-for="d in offDaysStore.offDays"> {{ weekDays.find(weekDay => weekDay.id === d)?.name }} </div>
-    </div>
-
-    <div class="p-4" style="border: 1px solid purple">
-      <b>Turni non assegnabili</b>
-      <br>
-      <div v-for="o in operatorStore.operators"> 
-        <div v-if="o.notAssignableSlots">
-          <div v-for="sId in o.notAssignableSlots">
-            {{ o.name }} -> {{ timeslotStore.timeslots.find(t => t.id === sId)?.name }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="p-4" style="border: 1px solid brown">
-      <b>todo scelta delle fasce associate agli operatori alla partenza</b>
-    </div>
-
-    <div class="p-4" style="border: 1px solid goldenrod">
-      <b>todo scelta del giorno di partenza (default oggi)</b>
-    </div>
-
-    <div class="p-4" style="border: 1px solid goldenrod">
-      <b>todo scelta del numero di settimane da pianificare</b>
-    </div>
-
-    <div class="p-4" style="border: 1px solid goldenrod">
-      <b>todo click su turno permette di invertirlo con un altro operatore in quella settimana</b>
-    </div>
+    <OperatorManager/>
 
     <div class="border rounded shadow-lg pt-4" v-for="plan in plans">
         <div class="text-center text-xl font-bold">
