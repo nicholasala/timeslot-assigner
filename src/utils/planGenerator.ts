@@ -2,53 +2,41 @@ import dayjs, { Dayjs } from 'dayjs';
 import type { Plan } from '@/model/Plan';
 import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
-import type { WorkDay } from '@/model/WorkDay';
 import { months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
 
-// TODO un piano dovrebbe partire non ogni settimana ma dopo ogni giorno/i di riposo
-// TODO: capire se trasformarla in una funzione pura che non usa gli store (cosí da rimuoverli da questo script)
 export function generatePlans(operators: Operator[], timeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
     const today = dayjs();
     const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
+    const startOfRoundDay = offDays.length !== 0 ? ((offDays[offDays.length - 1] + 1) % 7) : 1;
+    let daysPlanned = 0;
     let day = dayjs();
-    let weeksPlanned = 0;
     let weekPlan = generateFirstWeekPlan(operators, timeslots);
     let month = day.month();
-    let plan = plans[0];
+    let monthPlan = plans[0];
+    addEmptyDaysToMonthPlan(monthPlan, day);
 
-    while(weeksPlanned < weeksToPlan){
-        let weekDaysPlanned = 0;
+    while(daysPlanned <= (weeksToPlan * 7)) {
+        monthPlan.workDays.push({
+            date: day.date(),
+            plan: weekPlan,
+            isOff: offDays.includes(day.day()),
+            isStartOfRound: day.day() === startOfRoundDay || daysPlanned === 0,
+        });
 
-        if(weeksPlanned === 0)
-            weekDaysPlanned += addEmptyDaysToWeekPlan(plan, day);
+        // prepare data for next day
+        day = day.add(1, 'd');
+        daysPlanned++;
 
-        while(weekDaysPlanned < 7) {
-            const isStartOfRound = plan.workDays.length === 0 ? true : plan.workDays[plan.workDays.length - 1].isOff || plan.workDays[plan.workDays.length - 1].date === -1;
-            const isOff = offDays.length === 0 ? false : offDays.includes(day.day());
+        if(day.day() === startOfRoundDay)
+            weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
 
-            const workDay: WorkDay = {
-                date: day.date(),
-                plan: weekPlan,
-                isOff,
-                isStartOfRound,
-            }
-
-            plan.workDays.push(workDay);
-            weekDaysPlanned++;
-            day = day.add(1, 'd');
-
-            if(month !== day.month()) {
-                month = day.month();
-                plans.push({monthName: getMonthName(month), workDays: []});
-                plan = plans[plans.length - 1];
-                addEmptyDaysToWeekPlan(plan, day);
-            }
+        if(month !== day.month()) {
+            month = day.month();
+            plans.push({monthName: getMonthName(month), workDays: []});
+            monthPlan = plans[plans.length - 1];
+            addEmptyDaysToMonthPlan(monthPlan, day);
         }
-
-        weekDaysPlanned = 0;
-        weeksPlanned++;
-        weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
     }
 
     return plans;
@@ -59,7 +47,7 @@ function getMonthName(month: number): string {
 }
 
 // Empty days are days not considered in the plan, mainly because they are before the plan start
-function addEmptyDaysToWeekPlan(plan: Plan, fromDay: Dayjs) {
+function addEmptyDaysToMonthPlan(plan: Plan, fromDay: Dayjs) {
     let emptyDaysAdded = 0;
     let yesterdayDayNumber = fromDay.subtract(1, 'd').day();
 
@@ -97,7 +85,7 @@ function generateFirstWeekPlan(operators: Operator[], timeslots: Timeslot[]) : A
 }
 
 // Generate the plan of a week considering the previous plan
-// The operators shift will be of one each time, but considering not assignable slots wich could lead to extra shifts
+// The operators shift will be of one each time, but not assignable slots could lead to extra shifts
 function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[], operators: Operator[], timeslots: Timeslot[]): AssignedTimeslot[] {
     const assignedTimeslots: AssignedTimeslot[] = [];
     const shiftedOperators: Operator[] = [];
@@ -120,7 +108,6 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[], operators: O
     shiftedOperators[0] = extractedOperator;
 
     // operators and timeslots arrays MUST coincide in the size
-    // TODO: ensure that timeslot are entered by first to last in the day time
     timeslots.forEach((t, index) => {
         assignedTimeslots.push({operatorId: shiftedOperators[index].id, timeslotId: t.id});
     });
