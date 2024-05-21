@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useOperatorStore } from '../stores/operator';
+import { useTimeslotStore } from '../stores/timeslot';
+import type { Timeslot } from '@/model/Timeslot';
+import type { Operator } from '@/model/Operator';
 
 const operatorStore = useOperatorStore();
+const timeslotStore = useTimeslotStore();
 const addOperatorModal = ref(null);
 const operatorName = ref(null);
+const notAssignableTimeslots = ref([] as Timeslot[]);
+const notAssignableTimeslotsSelect = ref(null);
 const operatorColors = ['#aa50f4', '#efa823', '#2a23ef', '#32bf2f', '#ef3123'];
 const operatorNameError = ref(false);
 let colorCursor = 0;
 
-// TODO aggiungere la possibilitá di indicare i turni non assegnabili
-// operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [0]});
-
 function addOperator() {
   if(operatorName.value?.value) {
-    operatorStore.add({name: operatorName.value?.value, color: nextColor()});
+    const operator: Omit<Operator, 'id'> = {name: operatorName.value?.value, color: nextColor()};
+    console.log('Turni non assegnabili: ', notAssignableTimeslots.value);
+
+    if(notAssignableTimeslots.value.length !== 0)
+      operator.notAssignableSlots = notAssignableTimeslots.value.map(t => t.id);
+
+    operatorStore.add(operator);
     operatorName.value.value = '';
+    notAssignableTimeslots.value = [];
     operatorNameError.value = false;
     hideAddOperatorModal();
   } else {
@@ -41,6 +51,14 @@ function nextColor(): string {
   return color;
 }
 
+function addNotAssignableTimeslot(timeslot: Timeslot) {
+  if(notAssignableTimeslots.value.find(t => t.id === timeslot.id) === undefined)
+    notAssignableTimeslots.value.push(timeslot);
+
+  if(notAssignableTimeslotsSelect.value)
+    notAssignableTimeslotsSelect.value.value = 0;
+}
+
 </script>
 
 <template>
@@ -50,9 +68,14 @@ function nextColor(): string {
     <div class="py-4">
       <span class="block" v-if="operatorStore.operators.length === 0">Nessun operatore presente</span>
 
-      <div class="flex" v-for="o in operatorStore.operators">
-        <div class="h-4 w-4 rounded mx-2" :style="'background-color: ' + o.color"></div>
-      <div>{{ o.name }}</div> 
+      <div class="flex mb-1" v-for="o in operatorStore.operators">
+        <div class="h-6 w-6 rounded mx-2" :style="'background-color: ' + o.color"></div>
+        <div>
+          <span class="mr-2">{{ o.name }}</span>
+          <span v-if="o.notAssignableSlots && o.notAssignableSlots?.length !== 0">(No:
+            <span v-for="tId in o.notAssignableSlots" class="ml-2">{{ timeslotStore.timeslots.find(t => t.id === tId)?.name }}</span>
+          )</span>
+        </div> 
     </div>
     </div>
     <button class="btn btn-primary" @click="showAddOperatorModal">Aggiungi</button>
@@ -72,6 +95,18 @@ function nextColor(): string {
           class="input input-bordered w-full max-w-xs"
           :class="{ 'border-2 border-error': operatorNameError}"/>
         <span v-if="operatorNameError" class="block text-error">Questo campo é richiesto</span>
+
+        <h4 class="text-lg py-2">Turni non assegnabili</h4>
+        <span class="block mb-2">Ogni operatore puó avere uno o piú turni non assegnabili.</span>
+
+        <div class="mb-2">
+          <span v-for="t in notAssignableTimeslots" class="ml-2 font-bold">{{ t.name }}</span>
+        </div>
+
+        <select ref="notAssignableTimeslotsSelect" class="select select-bordered w-full max-w-xs">
+          <option disabled selected value="0">Scegli turno non assegnabile</option>
+          <option v-for="t in timeslotStore.timeslots" @click="() => addNotAssignableTimeslot(t)">{{ t.name }}</option>
+        </select>
       </div>
 
       <div class="modal-action">
