@@ -2,13 +2,13 @@ import type { Day } from './model/Day';
 import type { Month } from './model/Month';
 
 export const weekDays: Day[] = [
-    {id: 1, name: 'Lunedí'},
-    {id: 2, name: 'Martedí'},
-    {id: 3, name: 'Mercoledí'},
-    {id: 4, name: 'Giovedí'},
-    {id: 5, name: 'Venerdí'},
-    {id: 6, name: 'Sabato'},
-    {id: 0, name: 'Domenica'},
+    {id: 1, name: 'Lunedí', shortName: 'Lun'},
+    {id: 2, name: 'Martedí', shortName: 'Mar'},
+    {id: 3, name: 'Mercoledí', shortName: 'Mer'},
+    {id: 4, name: 'Giovedí', shortName: 'Gio'},
+    {id: 5, name: 'Venerdí', shortName: 'Ven'},
+    {id: 6, name: 'Sabato', shortName: 'Sab'},
+    {id: 0, name: 'Domenica', shortName: 'Dom'},
 ];
 
 export const months: Month[] = [

@@ -18,7 +18,6 @@ let colorCursor = 0;
 function addOperator() {
   if(operatorName.value?.value) {
     const operator: Omit<Operator, 'id'> = {name: operatorName.value?.value, color: nextColor()};
-    console.log('Turni non assegnabili: ', notAssignableTimeslots.value);
 
     if(notAssignableTimeslots.value.length !== 0)
       operator.notAssignableSlots = notAssignableTimeslots.value.map(t => t.id);

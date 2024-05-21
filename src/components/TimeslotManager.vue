@@ -61,6 +61,7 @@ function addTimeRange() {
 
       <div class="flex" v-for="t in timeslotStore.timeslots">
         <div>
+          <span class="font-bold mr-2">{{ t.id }}</span>
           <span>{{ t.name }}:</span>
           <span v-for="r in t.timeRanges" class="ml-2">{{ r.start + '-' + r.end }}</span>
         </div>

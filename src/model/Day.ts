@@ -1,4 +1,5 @@
 export interface Day {
     id: number,
-    name: string
+    name: string,
+    shortName: string
 }
