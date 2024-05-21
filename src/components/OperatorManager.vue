@@ -6,9 +6,10 @@ const operatorStore = useOperatorStore();
 const addOperatorModal = ref(null);
 const operatorName = ref(null);
 const operatorColors = ['#aa50f4', '#efa823', '#2a23ef', '#32bf2f', '#ef3123'];
-let operatorNameError = ref(false);
+const operatorNameError = ref(false);
 let colorCursor = 0;
 
+// TODO aggiungere la possibilitá di indicare i turni non assegnabili
 // operatorStore.add({name: 'Alice', color: '#32bf2f', notAssignableSlots: [0]});
 
 function addOperator() {
@@ -69,12 +70,12 @@ function nextColor(): string {
           type="text"
           placeholder="Nome operatore"
           class="input input-bordered w-full max-w-xs"
-          :class="{ 'border-2 border-rose-600': operatorNameError}"/>
-        <span v-if="operatorNameError" class="block text-rose-600">Questo campo é richiesto</span>
+          :class="{ 'border-2 border-error': operatorNameError}"/>
+        <span v-if="operatorNameError" class="block text-error">Questo campo é richiesto</span>
       </div>
 
       <div class="modal-action">
-        <button class="btn" @click="addOperator">Crea</button>
+        <button class="btn btn-primary" @click="addOperator">Crea</button>
       </div>
     </div>
   </dialog>
