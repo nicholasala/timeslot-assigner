@@ -27,7 +27,7 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
         day = day.add(1, 'd');
         daysPlanned++;
 
-        if(day.day() === startOfRoundDay && daysPlanned !== 1)
+        if(day.day() === startOfRoundDay && !monthPlan.workDays.every(d => d.isOff))
             weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
 
         if(month !== day.month()) {
