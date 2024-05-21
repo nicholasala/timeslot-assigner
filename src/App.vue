@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import IconStar from './components/icons/IconStar.vue';
-import { useOffDaysStore } from './stores/offDays';
 import { weekDays } from './constants';
 import { generatePlans } from './utils/planGenerator';
 import type { Plan } from './model/Plan';
 import OperatorManager from './components/OperatorManager.vue';
 import TimeslotManager from './components/TimeslotManager.vue';
+import OffDaysManager from './components/OffDaysManager.vue';
 
 // TODO OPERATORI E TURNI DEVONO AVERE LO STESSO NUMERO
 // TODO CALCOLO DEL NUMERO DI ORE FATTE DA OGNI OPERATORE
@@ -13,11 +13,6 @@ import TimeslotManager from './components/TimeslotManager.vue';
 // TODO click su turno permette di invertirlo con un altro operatore in quella settimana
 // TODO scelta del numero di settimane da pianificare
 // TODO scelta del giorno di partenza (default oggi)
-
-// GIORNI DI RIPOSO
-const offDaysStore = useOffDaysStore();
-const martedí = weekDays.find(wD => wD.name === 'Martedí');
-if(martedí) offDaysStore.add(martedí);
 
 // const plans: Plan[] = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
 const plans: Plan[] = [];
@@ -32,6 +27,7 @@ const plans: Plan[] = [];
   <main>
     <TimeslotManager/>
     <OperatorManager/>
+    <OffDaysManager/>
 
     <div class="border rounded shadow-lg pt-4" v-for="plan in plans">
         <div class="text-center text-xl font-bold">

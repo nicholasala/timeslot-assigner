@@ -8,8 +8,9 @@ export const useOffDaysStore = defineStore('offDays', {
     }
   },
   actions: {
-    add(day: Day) {
-      this.offDays.push(day.id);
+    add(day: number) {
+      if(this.offDays.find(o => o === day) === undefined)
+        this.offDays.push(day);
     }
   }
 })
