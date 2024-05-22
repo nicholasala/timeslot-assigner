@@ -5,7 +5,7 @@ export const useTimeslotStore = defineStore('timeslot', {
   state: () => {
     return {
       timeslots: [] as Timeslot[],
-      ids: 0
+      ids: 1
     }
   },
   actions: {

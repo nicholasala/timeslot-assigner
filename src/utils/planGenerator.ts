@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import type { Plan } from '@/model/Plan';
 import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
-import { months } from '@/constants';
+import { EMPTY_DAY_DATE, months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
 
 export function generatePlans(operators: Operator[], timeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
@@ -27,7 +27,7 @@ export function generatePlans(operators: Operator[], timeslots: Timeslot[], offD
         day = day.add(1, 'd');
         daysPlanned++;
 
-        if(day.day() === startOfRoundDay && !monthPlan.workDays.every(d => d.isOff))
+        if(day.day() === startOfRoundDay && (!monthPlan.workDays.every(d => d.isOff || d.date === EMPTY_DAY_DATE) || plans.length !== 1))
             weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
 
         if(month !== day.month()) {
@@ -51,7 +51,7 @@ function addEmptyDaysToMonthPlan(plan: Plan, fromDay: Dayjs) {
     let yesterdayDayNumber = fromDay.subtract(1, 'd').day();
 
     while(yesterdayDayNumber > 0) {
-        plan.workDays.push({date: -1, plan: [], isOff: false, isStartOfRound: false});
+        plan.workDays.push({date: EMPTY_DAY_DATE, plan: [], isOff: false, isStartOfRound: false});
         yesterdayDayNumber--;
         emptyDaysAdded++;
     }

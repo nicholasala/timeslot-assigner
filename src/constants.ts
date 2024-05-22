@@ -25,3 +25,5 @@ export const months: Month[] = [
     {id: 10, name: 'Novembre'},
     {id: 11, name: 'Dicembre'}
 ];
+
+export const EMPTY_DAY_DATE = -1;

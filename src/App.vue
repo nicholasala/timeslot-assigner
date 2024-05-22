@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import IconStar from './components/icons/IconStar.vue';
-import { weekDays } from './constants';
+import { EMPTY_DAY_DATE, weekDays } from './constants';
 import { generatePlans } from './utils/planGenerator';
 import type { Plan } from './model/Plan';
 import OperatorManager from './components/OperatorManager.vue';
@@ -55,7 +55,7 @@ function startPlansGeneration() {
 
           <div class="grid grid-cols-7 auto-rows-auto w-fit">
             <div class="py-2 w-auto h-auto min-h-32 border border-gray-200 flex" v-for="day in plan.workDays">
-              <div class="w-full flex flex-col" v-if="day.date > 0 && !day.isOff">
+              <div class="w-full flex flex-col" v-if="day.date !== EMPTY_DAY_DATE && !day.isOff">
                 <div class="pl-1"><span>{{ day.date }}</span></div>
                 <div class="flex">
                   <div v-if="day.isStartOfRound" class="pl-1 text-center">
