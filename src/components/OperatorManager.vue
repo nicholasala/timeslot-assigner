@@ -61,7 +61,7 @@ function addNotAssignableTimeslot(timeslot: Timeslot) {
 </script>
 
 <template>
-  <div class="p-4 shadow">
+  <div class="p-4">
     <h1 class="text-xl font-bold">Operatori</h1>
 
     <div class="py-4">

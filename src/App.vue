@@ -35,9 +35,11 @@ function startPlansGeneration() {
   </header>
 
   <main>
-    <TimeslotManager />
-    <OperatorManager />
-    <OffDaysManager />
+    <div class="flex flex-wrap flex-col sm:flex-row justify-center shadow">
+      <TimeslotManager />
+      <OperatorManager />
+      <OffDaysManager />
+    </div>
 
     <button class="btn btn-primary my-2" @click="startPlansGeneration">Genera pianificazione</button>
 
