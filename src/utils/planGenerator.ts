@@ -5,12 +5,13 @@ import type { Operator } from '@/model/Operator';
 import { EMPTY_DAY_DATE, months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
 
-export function generatePlans(operators: Operator[], timeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
+export function generatePlans(operators: Operator[], unsortedTimeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
     const today = dayjs();
     const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
     const startOfRoundDay = offDays.length !== 0 ? ((offDays[offDays.length - 1] + 1) % 7) : 1;
     let daysPlanned = 0;
     let day = dayjs();
+    const timeslots = sortTimeslots(unsortedTimeslots);
     let weekPlan = generateFirstWeekPlan(operators, timeslots);
     let month = day.month();
     let monthPlan = plans[0];
@@ -45,6 +46,32 @@ function getMonthName(month: number): string {
     return months.find(m => m.id === month)?.name || '';
 }
 
+function sortTimeslots(timeslots: Timeslot[]): Timeslot[] {
+    const unsortedTimeslots = [...timeslots];
+    const sortedTimeslots = [];
+
+    while(unsortedTimeslots.length > 0) {
+        let timeslot = unsortedTimeslots[0];
+        let index = 0;
+
+        for(let i = 1; i < unsortedTimeslots.length; i++) {
+            if(getMinimumStart(unsortedTimeslots[i]) < getMinimumStart(timeslot)) {
+                timeslot = unsortedTimeslots[i];
+                index = i;
+            }
+        }
+
+        sortedTimeslots.push(timeslot);
+        unsortedTimeslots.splice(index, 1);
+    }
+
+    return sortedTimeslots;
+}
+
+function getMinimumStart(timeslot: Timeslot): number {
+    return timeslot.timeRanges.reduce((minStart, tR) => tR.start < minStart ? tR.start : minStart, 1000);
+}
+
 // Empty days are days not considered in the plan, mainly because they are before the plan start
 function addEmptyDaysToMonthPlan(plan: Plan, fromDay: Dayjs) {
     let emptyDaysAdded = 0;
@@ -74,9 +101,11 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: 
 function generateFirstWeekPlan(operators: Operator[], timeslots: Timeslot[]) : AssignedTimeslot[]{
     const assignedTimeslots: AssignedTimeslot[] = [];
 
-    // operators and timeslots arrays MUST coincide in the size
-    timeslots.forEach((t, index) => {
-        assignedTimeslots.push({operatorId: operators[index].id, timeslotId: t.id});
+    timeslots.forEach(t => {
+        const operator = operators.find(o => o.planningStartTimeslotId === t.id);
+
+        if(operator)
+            assignedTimeslots.push({ operatorId: operator.id, timeslotId: t.id });
     });
 
     return containsNotAssignableTimeslot(assignedTimeslots, operators) ?

@@ -39,7 +39,7 @@ function hideAddTimeslotModal() {
 
 function addTimeRange() {
   if(timeslotStart.value?.value && timeslotEnd.value?.value && !isNaN(timeslotStart.value?.value) && !isNaN(timeslotEnd.value?.value)) {
-    timeslotTimeRanges.value.push({start: timeslotStart.value?.value, end: timeslotEnd.value?.value});
+    timeslotTimeRanges.value.push({start: +timeslotStart.value?.value, end: +timeslotEnd.value?.value});
     timeslotStart.value.value = '';
     timeslotEnd.value.value = '';
     timeslotTimeRangesError.value = false;
