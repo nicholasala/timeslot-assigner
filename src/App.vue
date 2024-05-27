@@ -23,8 +23,15 @@ const offDaysStore = useOffDaysStore();
 const plans = ref([] as Plan[]);
 
 function startPlansGeneration() {
-  // TODO OPERATORI E TURNI DEVONO AVERE LO STESSO NUMERO
+  // TODO andrá notificato all'utente l'errore
+  if(timeslotStore.timeslots.length !== operatorStore.operators.length)
+    return;
+
   plans.value = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
+}
+
+function printPlanning() {
+  print();
 }
 
 </script>
@@ -41,7 +48,15 @@ function startPlansGeneration() {
       <OffDaysManager />
     </div>
 
-    <button class="btn btn-primary my-2" @click="startPlansGeneration">Genera pianificazione</button>
+    <div>
+      <!-- TODO in qualche modo occorrerá indicare all'utente che il numero di turni e il numero di operatori deve essere uguale -->
+      <button class="btn m-2"
+        :class="timeslotStore.timeslots.length > 0 && timeslotStore.timeslots.length === operatorStore.operators.length ? 'btn-primary' : 'btn-disabled'"
+        @click="startPlansGeneration">
+          Genera pianificazione
+      </button>
+      <button v-if="plans.length > 0" class="btn btn-primary m-2" @click="printPlanning">Stampa</button>
+    </div>
 
     <div class="border rounded shadow-lg pt-4 overflow-x-scroll" v-for="plan in plans">
         <div class="text-center text-xl font-bold">
