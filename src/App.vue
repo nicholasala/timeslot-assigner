@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import IconStar from './components/icons/IconStar.vue';
 import { EMPTY_DAY_DATE, weekDays } from './constants';
-import { generatePlans } from './utils/planGenerator';
+import { calculatePlanningStatistics, generatePlans } from './utils/planGenerator';
 import type { Plan } from './model/Plan';
 import OperatorManager from './components/OperatorManager.vue';
 import TimeslotManager from './components/TimeslotManager.vue';
@@ -10,10 +10,12 @@ import OffDaysManager from './components/OffDaysManager.vue';
 import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
 import { useOffDaysStore } from './stores/offDays';
+import type { PlanningStatistics } from './model/PlannningStatistics';
+import OperatorCard from './components/OperatorCard.vue';
+import TimeslotCard from './components/TimeslotCard.vue';
 
-// TODO CALCOLO DEL NUMERO DI ORE FATTE DA OGNI OPERATORE
-// TODO scelta delle fasce associate agli operatori alla partenza
 // TODO click su turno permette di invertirlo con un altro operatore in quella settimana
+// TODO impostazione dei giorni di ferie per ogni operatore
 // TODO scelta del numero di settimane da pianificare
 // TODO scelta del giorno di partenza (default oggi)
 
@@ -21,6 +23,7 @@ const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const offDaysStore = useOffDaysStore();
 const plans = ref([] as Plan[]);
+const planningStatistics = ref({operatorsWorkingHours: []} as PlanningStatistics);
 
 function startPlansGeneration() {
   // TODO andrá notificato all'utente l'errore
@@ -28,6 +31,7 @@ function startPlansGeneration() {
     return;
 
   plans.value = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
+  planningStatistics.value = calculatePlanningStatistics(operatorStore.operators, timeslotStore.timeslots, plans.value);
 }
 
 function printPlanning() {
@@ -42,7 +46,7 @@ function printPlanning() {
   </header>
 
   <main>
-    <div class="flex flex-wrap flex-col sm:flex-row justify-center shadow">
+    <div v-if="plans.length === 0" class="flex flex-wrap flex-col sm:flex-row justify-center shadow">
       <TimeslotManager />
       <OperatorManager />
       <OffDaysManager />
@@ -58,6 +62,19 @@ function printPlanning() {
       <button v-if="plans.length > 0" class="btn btn-primary m-2" @click="printPlanning">Stampa</button>
     </div>
 
+    <!-- TODO spostare in un componente panoramica dedicato -->
+    <div class="p-4" v-if="plans.length > 0 && planningStatistics.operatorsWorkingHours.length > 0">
+      <div class="flex" v-for="t in timeslotStore.timeslots">
+        <TimeslotCard :timeslot="t" />
+      </div>
+
+      <div class="flex py-1" v-for="oWH in planningStatistics.operatorsWorkingHours">
+        <OperatorCard :operator="oWH.operator"></OperatorCard>
+        <span class="ml-2">Ore totali: {{ oWH.total }}</span> 
+      </div>
+    </div>
+
+    <!-- TODO spostare in un componente calendario dedicato -->
     <div class="border rounded shadow-lg pt-4 overflow-x-scroll" v-for="plan in plans">
         <div class="text-center text-xl font-bold">
           <span>{{ plan.monthName }}</span>
@@ -79,8 +96,6 @@ function printPlanning() {
                     <div class="font-bold" v-for="slot in day.plan"> {{ slot.timeslotId }} </div>
                   </div>
                   <div class="w-full">
-
-                    <!-- TODO refactor in un componente che accetta l'id dell'operatore e lo legge dallo store -->
                     <div
                       class="relative font-bold w-full h-6 pl-1 text-white"
                       v-for="slot in day.plan">

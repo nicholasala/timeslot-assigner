@@ -4,6 +4,7 @@ import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
 import { EMPTY_DAY_DATE, months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
+import type { PlanningStatistics } from '@/model/PlannningStatistics';
 
 export function generatePlans(operators: Operator[], unsortedTimeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
     const today = dayjs();
@@ -143,4 +144,32 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: 
     }
 
     return false;
+}
+
+export function calculatePlanningStatistics(operators: Operator[], timeslots: Timeslot[], plans: Plan[]): PlanningStatistics  {
+    const statistics: PlanningStatistics = {
+        operatorsWorkingHours: []
+    };
+
+    operators.forEach(o => statistics.operatorsWorkingHours.push({operator: o, total: 0}));
+
+    plans.forEach(plan => {
+        plan.workDays.forEach(workDay => {
+            if(!workDay.isOff && workDay.date !== EMPTY_DAY_DATE) {
+                workDay.plan.forEach(workDayPlan => {
+                    const timeslot = timeslots.find(t => t.id === workDayPlan.timeslotId);
+    
+                    if(timeslot) {
+                        const hoursTotal = timeslot.timeRanges.reduce((tot, tR) => tot + (tR.end - tR.start), 0);
+                        const operatorWorkingHours = statistics.operatorsWorkingHours.find(oWH => oWH.operator.id === workDayPlan.operatorId);
+    
+                        if(operatorWorkingHours)
+                            operatorWorkingHours.total += hoursTotal;
+                    }
+                });
+            }
+        });
+    });
+
+    return statistics;
 }

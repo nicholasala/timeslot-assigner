@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useTimeslotStore } from '../stores/timeslot';
+import TimeslotCard from './TimeslotCard.vue';
 
 const timeslotStore = useTimeslotStore();
 const addTimeslotModal = ref(null);
@@ -60,11 +61,7 @@ function addTimeRange() {
       <span class="block" v-if="timeslotStore.timeslots.length === 0">Nessun turno presente</span>
 
       <div class="flex" v-for="t in timeslotStore.timeslots">
-        <div>
-          <span class="font-bold mr-2">{{ t.id }}</span>
-          <span>{{ t.name }}:</span>
-          <span v-for="r in t.timeRanges" class="ml-2">{{ r.start + '-' + r.end }}</span>
-        </div>
+        <TimeslotCard :timeslot="t" />
       </div>
     </div>
     <button class="btn btn-primary" @click="showAddTimeslotModal">Aggiungi</button>

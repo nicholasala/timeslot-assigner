@@ -79,13 +79,10 @@ function getAssignablePlanningStartTimeslots(): Timeslot[] {
 
       <div class="flex mb-1" v-for="o in operatorStore.operators">
         <OperatorCard :operator="o"></OperatorCard>
-        <div>
-          <span>{{ o.name }}</span>
-          <span class="ml-2">(Inizia con: {{ timeslotStore.timeslots.find(t => t.id === o.planningStartTimeslotId)?.name }})</span>
-          <span class="ml-2" v-if="o.notAssignableSlots && o.notAssignableSlots?.length !== 0">(No:
-            <span v-for="tId in o.notAssignableSlots" class="ml-2">{{ timeslotStore.timeslots.find(t => t.id === tId)?.name }}</span>
-          )</span>
-        </div> 
+        <span class="ml-2">(Inizia con: {{ timeslotStore.timeslots.find(t => t.id === o.planningStartTimeslotId)?.name }})</span>
+        <span class="ml-2" v-if="o.notAssignableSlots && o.notAssignableSlots?.length !== 0">(No:
+          <span v-for="tId in o.notAssignableSlots" class="ml-2">{{ timeslotStore.timeslots.find(t => t.id === tId)?.name }}</span>
+        )</span>
       </div>
     </div>
     <button class="btn btn-primary" @click="showAddOperatorModal">Aggiungi</button>

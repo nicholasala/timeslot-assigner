@@ -5,5 +5,5 @@ export interface Operator {
     name: string,
     color: string,
     planningStartTimeslotId: number,
-    notAssignableSlots?: number[]
+    notAssignableSlots?: number[],
 }
