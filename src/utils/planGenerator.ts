@@ -86,18 +86,6 @@ function addEmptyDaysToMonthPlan(plan: Plan, fromDay: Dayjs) {
     return emptyDaysAdded;
 }
 
-function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: Operator[]): boolean {
-    for(let i = 0; i < weekPlan.length; i++) {
-        const assignedTimeslot = weekPlan[i];
-        const operator = operators.find(o => o.id === assignedTimeslot.operatorId);
-
-        if(operator?.notAssignableSlots && operator.notAssignableSlots.find(sId => sId === assignedTimeslot.timeslotId) !== undefined)
-            return true;
-    }
-
-    return false;
-}
-
 function generateFirstWeekPlan(operators: Operator[], timeslots: Timeslot[]) : AssignedTimeslot[]{
     const assignedTimeslots: AssignedTimeslot[] = [];
 
@@ -143,4 +131,16 @@ function generateNextWeekPlan(previousWeekPlan: AssignedTimeslot[], operators: O
     // TODO: avoid possible infinite loop
     return containsNotAssignableTimeslot(assignedTimeslots, operators) ?
         generateNextWeekPlan(assignedTimeslots, operators, timeslots) : assignedTimeslots;
+}
+
+function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: Operator[]): boolean {
+    for(let i = 0; i < weekPlan.length; i++) {
+        const assignedTimeslot = weekPlan[i];
+        const operator = operators.find(o => o.id === assignedTimeslot.operatorId);
+
+        if(operator?.notAssignableSlots && operator.notAssignableSlots.find(sId => sId === assignedTimeslot.timeslotId) !== undefined)
+            return true;
+    }
+
+    return false;
 }

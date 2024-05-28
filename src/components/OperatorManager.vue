@@ -4,6 +4,7 @@ import { useOperatorStore } from '../stores/operator';
 import { useTimeslotStore } from '../stores/timeslot';
 import type { Timeslot } from '@/model/Timeslot';
 import type { Operator } from '@/model/Operator';
+import OperatorCard from './OperatorCard.vue';
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
@@ -77,7 +78,7 @@ function getAssignablePlanningStartTimeslots(): Timeslot[] {
       <span class="block" v-if="operatorStore.operators.length === 0">Nessun operatore presente</span>
 
       <div class="flex mb-1" v-for="o in operatorStore.operators">
-        <div class="h-6 w-6 rounded mr-2" :style="'background-color: ' + o.color"></div>
+        <OperatorCard :operator="o"></OperatorCard>
         <div>
           <span>{{ o.name }}</span>
           <span class="ml-2">(Inizia con: {{ timeslotStore.timeslots.find(t => t.id === o.planningStartTimeslotId)?.name }})</span>
