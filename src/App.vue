@@ -55,6 +55,7 @@ function printPlanning() {
     <div>
       <!-- TODO in qualche modo occorrerá indicare all'utente che il numero di turni e il numero di operatori deve essere uguale -->
       <button class="btn m-2"
+        v-if="plans.length === 0"
         :class="timeslotStore.timeslots.length > 0 && timeslotStore.timeslots.length === operatorStore.operators.length ? 'btn-primary' : 'btn-disabled'"
         @click="startPlansGeneration">
           Genera pianificazione
@@ -64,10 +65,11 @@ function printPlanning() {
 
     <!-- TODO spostare in un componente panoramica dedicato -->
     <div class="p-4" v-if="plans.length > 0 && planningStatistics.operatorsWorkingHours.length > 0">
+      <h1 class="text-xl font-bold pb-2">Turni</h1>
       <div class="flex" v-for="t in timeslotStore.timeslots">
         <TimeslotCard :timeslot="t" />
       </div>
-
+      <h1 class="text-xl font-bold py-2">Operatori</h1>
       <div class="flex py-1" v-for="oWH in planningStatistics.operatorsWorkingHours">
         <OperatorCard :operator="oWH.operator"></OperatorCard>
         <span class="ml-2">Ore totali: {{ oWH.total }}</span> 
@@ -87,7 +89,7 @@ function printPlanning() {
             </div>
           </div>
 
-          <div class="grid grid-cols-7 auto-rows-auto w-fit">
+          <div class="grid grid-cols-7 auto-rows-auto w-full">
             <div class="py-2 w-auto h-auto min-h-32 flex relative" v-for="day in plan.workDays">
               <div class="w-full flex flex-col" v-if="day.date !== EMPTY_DAY_DATE && !day.isOff">
                 <div class="pl-1"><span>{{ day.date }}</span></div>

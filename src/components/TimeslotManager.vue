@@ -16,6 +16,9 @@ const timeslotTimeRangesNotNumberError = ref(false);
 // timeslotStore.add({name: 'giornata', timeRanges: [{start: 11, end: 15}, {start: 18, end: 20}]});
 
 function addTimeslot() {
+  if(isEnteredTimeRangeValid())
+    addTimeRange();
+
   if(timeslotName.value?.value && timeslotTimeRanges.value.length !== 0) {
     timeslotStore.add({name: timeslotName.value?.value, timeRanges: timeslotTimeRanges.value});
     timeslotName.value.value = '';
@@ -39,7 +42,7 @@ function hideAddTimeslotModal() {
 }
 
 function addTimeRange() {
-  if(timeslotStart.value?.value && timeslotEnd.value?.value && !isNaN(timeslotStart.value?.value) && !isNaN(timeslotEnd.value?.value)) {
+  if(isEnteredTimeRangeValid()) {
     timeslotTimeRanges.value.push({start: +timeslotStart.value?.value, end: +timeslotEnd.value?.value});
     timeslotStart.value.value = '';
     timeslotEnd.value.value = '';
@@ -49,6 +52,10 @@ function addTimeRange() {
     timeslotTimeRangesError.value = false;
     timeslotTimeRangesNotNumberError.value = true;
   }
+}
+
+function isEnteredTimeRangeValid(): boolean {
+  return timeslotStart.value?.value && timeslotEnd.value?.value && !isNaN(timeslotStart.value?.value) && !isNaN(timeslotEnd.value?.value);
 }
 
 </script>
