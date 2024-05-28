@@ -112,6 +112,7 @@ function printPlanning() {
 
               <div class="h-full w-px absolute top-0 right-0 bg-gray-200 z-0"></div>
               <div class="h-px w-full absolute top-0 left-0 bg-gray-200 z-0"></div>
+              <div class="h-px w-full absolute bottom-0 left-0 bg-gray-200 z-0"></div>
             </div>
           </div>
         </div>
