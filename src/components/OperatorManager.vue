@@ -10,7 +10,6 @@ const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const addOperatorModal = ref(null);
 const operatorName = ref(null);
-const notAssignableTimeslots = ref([] as Timeslot[]);
 const planningStartTimeslotSelect = ref(null);
 const notAssignableTimeslotsSelect = ref(null);
 const operatorColors = ['#aa50f4', '#efa823', '#2a23ef', '#32bf2f', '#ef3123'];
@@ -25,12 +24,11 @@ function addOperator() {
       planningStartTimeslotId: +planningStartTimeslotSelect.value?.value
     };
 
-    if(notAssignableTimeslots.value.length !== 0)
-      operator.notAssignableSlots = notAssignableTimeslots.value.map(t => t.id);
+    if(notAssignableTimeslotsSelect.value && +notAssignableTimeslotsSelect.value?.value > 0)
+      operator.notAssignableTimeslot = +notAssignableTimeslotsSelect.value?.value;
 
     operatorStore.add(operator);
-    operatorName.value.value = '';
-    notAssignableTimeslots.value = [];
+    cleanDialogData();
     operatorNameError.value = false;
     hideAddOperatorModal();
   } else {
@@ -56,16 +54,11 @@ function nextColor(): string {
   return color;
 }
 
-function addNotAssignableTimeslot(timeslot: Timeslot) {
-  if(notAssignableTimeslots.value.find(t => t.id === timeslot.id) === undefined)
-    notAssignableTimeslots.value.push(timeslot);
-
-  if(notAssignableTimeslotsSelect.value)
-    notAssignableTimeslotsSelect.value.value = 0;
-}
-
-function getAssignablePlanningStartTimeslots(): Timeslot[] {
-  return timeslotStore.timeslots.filter(t => operatorStore.operators.find(o => o.planningStartTimeslotId === t.id) === undefined);
+function cleanDialogData() {
+  if(notAssignableTimeslotsSelect.value && operatorName.value) {
+    operatorName.value.value = '';
+    notAssignableTimeslotsSelect.value.value = '0';
+  }
 }
 
 </script>
@@ -80,8 +73,8 @@ function getAssignablePlanningStartTimeslots(): Timeslot[] {
       <div class="flex mb-1" v-for="o in operatorStore.operators">
         <OperatorCard :operator="o"></OperatorCard>
         <span class="ml-2">(Inizia con: {{ timeslotStore.timeslots.find(t => t.id === o.planningStartTimeslotId)?.name }})</span>
-        <span class="ml-2" v-if="o.notAssignableSlots && o.notAssignableSlots?.length !== 0">(No:
-          <span v-for="tId in o.notAssignableSlots" class="ml-2">{{ timeslotStore.timeslots.find(t => t.id === tId)?.name }}</span>
+        <span class="ml-2" v-if="o.notAssignableTimeslot && o.notAssignableTimeslot?.length !== 0">(No:
+          <span v-for="tId in o.notAssignableTimeslot" class="ml-2">{{ timeslotStore.timeslots.find(t => t.id === tId)?.name }}</span>
         )</span>
       </div>
     </div>
@@ -91,7 +84,7 @@ function getAssignablePlanningStartTimeslots(): Timeslot[] {
   <dialog ref="addOperatorModal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @mouseup="cleanDialogData">✕</button>
       </form>
       <h3 class="font-bold text-lg">Crea operatore</h3>
 
@@ -114,15 +107,11 @@ function getAssignablePlanningStartTimeslots(): Timeslot[] {
         </select>
 
         <h4 class="text-lg py-2">Turni non assegnabili</h4>
-        <span class="block mb-2">Ogni operatore puó avere uno o piú turni non assegnabili.</span>
-
-        <div class="mb-2">
-          <span v-for="t in notAssignableTimeslots" class="ml-2 font-bold">{{ t.name }}</span>
-        </div>
+        <span class="block mb-2">Ogni operatore puó avere un turno non assegnabile</span>
 
         <select ref="notAssignableTimeslotsSelect" class="select select-bordered w-full max-w-xs">
           <option disabled selected value="0">Scegli turno non assegnabile</option>
-          <option v-for="t in timeslotStore.timeslots" @click="() => addNotAssignableTimeslot(t)">{{ t.name }}</option>
+          <option v-for="t in timeslotStore.timeslots" :value="t.id">{{ t.name }}</option>
         </select>
       </div>
 

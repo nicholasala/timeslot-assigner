@@ -139,7 +139,7 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: 
         const assignedTimeslot = weekPlan[i];
         const operator = operators.find(o => o.id === assignedTimeslot.operatorId);
 
-        if(operator?.notAssignableSlots && operator.notAssignableSlots.find(sId => sId === assignedTimeslot.timeslotId) !== undefined)
+        if(operator?.notAssignableTimeslot === assignedTimeslot.timeslotId)
             return true;
     }
 
