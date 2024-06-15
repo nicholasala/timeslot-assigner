@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { useOperatorStore } from '../stores/operator';
 import { useTimeslotStore } from '../stores/timeslot';
-import type { Timeslot } from '@/model/Timeslot';
 import type { Operator } from '@/model/Operator';
 import OperatorCard from './OperatorCard.vue';
 
