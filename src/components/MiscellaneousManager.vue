@@ -8,18 +8,29 @@ const miscellaneousStore = useMiscellaneousStore();
 const editMiscellaneousModal = ref(null);
 const activityName = ref(null);
 const weeksToPlan = ref(null);
+const activityNameError = ref(false);
 const weeksNumberError = ref(false);
 
 function saveMiscellaneous() {
-  if(!weeksToPlan.value?.value || isNaN(weeksToPlan.value?.value)) {
-    weeksNumberError.value = true;
-    return;
-  }
+  if(!activityName.value?.value)
+    activityNameError.value = true;
+  else
+    activityNameError.value = false;
 
-  if(+weeksToPlan.value?.value < 1 || +weeksToPlan.value?.value > MAX_PLANNABLE_WEEKS_NUMBER)
+  if(!weeksToPlan.value?.value || isNaN(weeksToPlan.value?.value))
+    weeksNumberError.value = true;
+  else
+    weeksNumberError.value = false;
+
+  if(activityNameError.value || weeksNumberError.value)
+    return;
+
+  if(weeksToPlan.value && (+weeksToPlan.value?.value < 1 || +weeksToPlan.value?.value > MAX_PLANNABLE_WEEKS_NUMBER))
     weeksToPlan.value.value = DEFAULT_WEEKS_TO_PLAN_NUMBER;
 
+  miscellaneousStore.editActivityName(activityName.value?.value);
   miscellaneousStore.editWeeksToPlan(+weeksToPlan.value?.value);
+  activityNameError.value = false;
   weeksNumberError.value = false;
   hideEditMiscellaneousModal();
 }
@@ -32,13 +43,15 @@ function hideEditMiscellaneousModal() {
   editMiscellaneousModal.value?.close();
 }
 
-onMounted(() => {
+function resetDialogData() {
   if(activityName.value)
     activityName.value.value = miscellaneousStore.activityName;
 
   if(weeksToPlan.value)
     weeksToPlan.value.value = miscellaneousStore.weeksToPlan;
-});
+}
+
+onMounted(resetDialogData);
 </script>
 
 <template>
@@ -55,12 +68,20 @@ onMounted(() => {
   <dialog ref="editMiscellaneousModal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @mouseup="resetDialogData">✕</button>
       </form>
       <h3 class="font-bold text-lg">Varie impostazioni</h3>
 
       <div class="py-4">
-        <span class="block mb-2">Numero di settimane da 1 a {{ MAX_PLANNABLE_WEEKS_NUMBER }}</span>
+        <span class="block mb-2">Nome attivitá</span>
+        <input ref="activityName"
+          type="text"
+          placeholder="Nome attivitá"
+          class="input input-bordered w-full max-w-xs mb-2"
+          :class="{ 'border-2 border-error': activityNameError}"/>
+        <span v-if="activityNameError" class="block text-error mb-2">Questo campo é richiesto</span>
+
+        <span class="block mb-2">Numero di settimane (minimo 1, massimo {{ MAX_PLANNABLE_WEEKS_NUMBER }})</span>
         <input ref="weeksToPlan"
           type="number"
           placeholder="Numero di settimane da pianificare"
