@@ -1,4 +1,3 @@
-import type { Day } from '@/model/Day';
 import { defineStore } from 'pinia';
 
 export const useOffDaysStore = defineStore('offDays', {

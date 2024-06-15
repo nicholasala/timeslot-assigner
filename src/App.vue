@@ -8,18 +8,19 @@ import OffDaysManager from './components/OffDaysManager.vue';
 import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
 import { useOffDaysStore } from './stores/offDays';
+import { useMiscellaneousStore } from './stores/miscellaneous';
 import type { PlanningStatistics } from './model/PlannningStatistics';
 import PlansCalendar from './components/PlansCalendar.vue';
 import PlansOverview from './components/PlansOverview.vue';
 
 // TODO click su turno permette di invertirlo con un altro operatore in quella settimana
 // TODO impostazione dei giorni di ferie per ogni operatore
-// TODO scelta del numero di settimane da pianificare
 // TODO scelta del giorno di partenza (default oggi)
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const offDaysStore = useOffDaysStore();
+const miscellaneousStore = useMiscellaneousStore();
 const plans = ref([] as Plan[]);
 const planningStatistics = ref({operatorsWorkingHours: []} as PlanningStatistics);
 
@@ -28,7 +29,7 @@ function startPlansGeneration() {
   if(timeslotStore.timeslots.length !== operatorStore.operators.length)
     return;
 
-  plans.value = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, 4);
+  plans.value = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, miscellaneousStore.weeksToPlan);
   planningStatistics.value = calculatePlanningStatistics(operatorStore.operators, timeslotStore.timeslots, plans.value);
 }
 
@@ -40,7 +41,7 @@ function printPlanning() {
 
 <template>
   <header class="h-16 text-2xl text-white text-center bg-green-600 p-3">
-    Timeslot assigner
+    {{ miscellaneousStore.activityName }}
   </header>
 
   <main>
