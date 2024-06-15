@@ -27,3 +27,5 @@ export const months: Month[] = [
 ];
 
 export const EMPTY_DAY_DATE = -1;
+export const DEFAULT_WEEKS_TO_PLAN_NUMBER = 4;
+export const MAX_PLANNABLE_WEEKS_NUMBER = 20;

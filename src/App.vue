@@ -12,6 +12,7 @@ import { useMiscellaneousStore } from './stores/miscellaneous';
 import type { PlanningStatistics } from './model/PlannningStatistics';
 import PlansCalendar from './components/PlansCalendar.vue';
 import PlansOverview from './components/PlansOverview.vue';
+import MiscellaneousManager from './components/MiscellaneousManager.vue';
 
 // TODO click su turno permette di invertirlo con un altro operatore in quella settimana
 // TODO impostazione dei giorni di ferie per ogni operatore
@@ -49,6 +50,7 @@ function printPlanning() {
       <TimeslotManager />
       <OperatorManager />
       <OffDaysManager />
+      <MiscellaneousManager />
     </div>
 
     <div>
