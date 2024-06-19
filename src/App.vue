@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { calculatePlanningStatistics, generatePlans } from './utils/planGenerator';
-import type { Plan } from './model/Plan';
+import { generatePlan } from './utils/planGenerator';
 import OperatorManager from './components/OperatorManager.vue';
 import TimeslotManager from './components/TimeslotManager.vue';
 import OffDaysManager from './components/OffDaysManager.vue';
@@ -9,9 +7,9 @@ import { useOperatorStore } from './stores/operator';
 import { useTimeslotStore } from './stores/timeslot';
 import { useOffDaysStore } from './stores/offDays';
 import { useMiscellaneousStore } from './stores/miscellaneous';
-import type { PlanningStatistics } from './model/PlannningStatistics';
-import PlansCalendar from './components/PlansCalendar.vue';
-import PlansOverview from './components/PlansOverview.vue';
+import { usePlanStore } from './stores/plan';
+import PlanCalendar from './components/PlanCalendar.vue';
+import PlanOverview from './components/PlanOverview.vue';
 import MiscellaneousManager from './components/MiscellaneousManager.vue';
 
 // TODO click su turno permette di invertirlo con un altro operatore in quella settimana
@@ -22,19 +20,18 @@ const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const offDaysStore = useOffDaysStore();
 const miscellaneousStore = useMiscellaneousStore();
-const plans = ref([] as Plan[]);
-const planningStatistics = ref({operatorsWorkingHours: []} as PlanningStatistics);
+const planStore = usePlanStore();
 
-function startPlansGeneration() {
+function startPlanGeneration() {
   // TODO andrá notificato all'utente l'errore
   if(timeslotStore.timeslots.length !== operatorStore.operators.length)
     return;
 
-  plans.value = generatePlans(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, miscellaneousStore.weeksToPlan);
-  planningStatistics.value = calculatePlanningStatistics(operatorStore.operators, timeslotStore.timeslots, plans.value);
+  const plan = generatePlan(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, miscellaneousStore.weeksToPlan);
+  planStore.updatePlan(plan);
 }
 
-function printPlanning() {
+function printPlan() {
   print();
 }
 
@@ -46,7 +43,7 @@ function printPlanning() {
   </header>
 
   <main>
-    <div v-if="plans.length === 0" class="flex flex-wrap flex-col sm:flex-row justify-center shadow">
+    <div v-if="planStore.plan.monthPlans === undefined" class="flex flex-wrap flex-col sm:flex-row justify-center shadow">
       <TimeslotManager />
       <OperatorManager />
       <OffDaysManager />
@@ -56,15 +53,17 @@ function printPlanning() {
     <div>
       <!-- TODO in qualche modo occorrerá indicare all'utente che il numero di turni e il numero di operatori deve essere uguale -->
       <button class="btn m-2"
-        v-if="plans.length === 0"
+        v-if="planStore.plan.monthPlans === undefined"
         :class="timeslotStore.timeslots.length > 0 && timeslotStore.timeslots.length === operatorStore.operators.length ? 'btn-primary' : 'btn-disabled'"
-        @click="startPlansGeneration">
+        @click="startPlanGeneration">
           Genera pianificazione
       </button>
-      <button v-if="plans.length > 0" class="btn btn-primary m-2" @click="printPlanning">Stampa</button>
+      <button v-if="planStore.plan.monthPlans" class="btn btn-primary m-2" @click="printPlan">Stampa</button>
     </div>
 
-    <PlansOverview :planning-statistics="planningStatistics"/>
-    <PlansCalendar :plans="plans"/>
+    <div v-if="planStore.plan.monthPlans">
+      <PlanOverview/>
+      <PlanCalendar/>
+    </div>
   </main>
 </template>

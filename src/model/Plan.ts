@@ -1,6 +1,7 @@
-import type { WorkDay } from './WorkDay';
+import type { MonthPlan } from './MonthPlan';
+import type { PlanStatistics } from './PlanStatistics';
 
 export interface Plan {
-    monthName: string,
-    workDays: WorkDay[]
+    monthPlans: MonthPlan[],
+    planStatistics: PlanStatistics
 }

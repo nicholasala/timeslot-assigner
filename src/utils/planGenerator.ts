@@ -1,21 +1,22 @@
 import dayjs, { Dayjs } from 'dayjs';
-import type { Plan } from '@/model/Plan';
+import type { MonthPlan } from '@/model/MonthPlan';
 import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { Operator } from '@/model/Operator';
 import { EMPTY_DAY_DATE, months } from '@/constants';
 import type { Timeslot } from '@/model/Timeslot';
-import type { PlanningStatistics } from '@/model/PlannningStatistics';
+import type { PlanStatistics } from '@/model/PlanStatistics';
+import type { Plan } from '@/model/Plan';
 
-export function generatePlans(operators: Operator[], unsortedTimeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan[] {
+export function generatePlan(operators: Operator[], unsortedTimeslots: Timeslot[], offDays: number[], weeksToPlan = 4): Plan {
     const today = dayjs();
-    const plans: Plan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
+    const monthPlans: MonthPlan[] = [{ monthName: getMonthName(today.month()), workDays: [] }];
     const startOfRoundDay = offDays.length !== 0 ? ((offDays[offDays.length - 1] + 1) % 7) : 1;
     let daysPlanned = 0;
     let day = dayjs();
     const timeslots = sortTimeslots(unsortedTimeslots);
     let weekPlan = generateFirstWeekPlan(operators, timeslots);
     let month = day.month();
-    let monthPlan = plans[0];
+    let monthPlan = monthPlans[0];
     addEmptyDaysToMonthPlan(monthPlan, day);
 
     while(daysPlanned < (weeksToPlan * 7)) {
@@ -29,18 +30,21 @@ export function generatePlans(operators: Operator[], unsortedTimeslots: Timeslot
         day = day.add(1, 'd');
         daysPlanned++;
 
-        if(day.day() === startOfRoundDay && (!monthPlan.workDays.every(d => d.isOff || d.date === EMPTY_DAY_DATE) || plans.length !== 1))
+        if(day.day() === startOfRoundDay && (!monthPlan.workDays.every(d => d.isOff || d.date === EMPTY_DAY_DATE) || monthPlans.length !== 1))
             weekPlan = generateNextWeekPlan(weekPlan, operators, timeslots);
 
         if(month !== day.month()) {
             month = day.month();
-            plans.push({monthName: getMonthName(month), workDays: []});
-            monthPlan = plans[plans.length - 1];
+            monthPlans.push({monthName: getMonthName(month), workDays: []});
+            monthPlan = monthPlans[monthPlans.length - 1];
             addEmptyDaysToMonthPlan(monthPlan, day);
         }
     }
 
-    return plans;
+    return {
+        monthPlans,
+        planStatistics: calculatePlanStatistics(operators, timeslots, monthPlans)
+    };
 }
 
 function getMonthName(month: number): string {
@@ -74,7 +78,7 @@ function getMinimumStart(timeslot: Timeslot): number {
 }
 
 // Empty days are days not considered in the plan, mainly because they are before the plan start
-function addEmptyDaysToMonthPlan(plan: Plan, fromDay: Dayjs) {
+function addEmptyDaysToMonthPlan(plan: MonthPlan, fromDay: Dayjs) {
     let emptyDaysAdded = 0;
     let yesterdayDayNumber = fromDay.subtract(1, 'd').day();
 
@@ -146,15 +150,15 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: 
     return false;
 }
 
-export function calculatePlanningStatistics(operators: Operator[], timeslots: Timeslot[], plans: Plan[]): PlanningStatistics  {
-    const statistics: PlanningStatistics = {
+function calculatePlanStatistics(operators: Operator[], timeslots: Timeslot[], monthPlans: MonthPlan[]): PlanStatistics  {
+    const statistics: PlanStatistics = {
         operatorsWorkingHours: []
     };
 
     operators.forEach(o => statistics.operatorsWorkingHours.push({operator: o, total: 0}));
 
-    plans.forEach(plan => {
-        plan.workDays.forEach(workDay => {
+    monthPlans.forEach(monthPlan => {
+        monthPlan.workDays.forEach(workDay => {
             if(!workDay.isOff && workDay.date !== EMPTY_DAY_DATE) {
                 workDay.plan.forEach(workDayPlan => {
                     const timeslot = timeslots.find(t => t.id === workDayPlan.timeslotId);
