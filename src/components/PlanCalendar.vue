@@ -3,9 +3,36 @@ import { usePlanStore } from '@/stores/plan';
 import IconStar from '../components/icons/IconStar.vue';
 import { EMPTY_DAY_DATE, weekDays } from '../constants';
 import { useOperatorStore } from '../stores/operator';
+import { ref } from 'vue';
+import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
+import type { WorkDay } from '@/model/WorkDay';
+import { useTimeslotStore } from '@/stores/timeslot';
+import { calculatePlanStatistics } from '@/utils/planGenerator';
 
 const operatorStore = useOperatorStore();
+const timeslotStore = useTimeslotStore();
 const planStore = usePlanStore();
+const editTimeslotModal = ref(null);
+
+function editAssignedTimeslot(assignedTimeslot: AssignedTimeslot, workDay: WorkDay) {
+  console.log('Modifico', assignedTimeslot.operatorId, assignedTimeslot.timeslotId);
+  console.log('Nel giorno', workDay.date);
+  workDay.plan.forEach(aTS => {
+    aTS.operatorId = assignedTimeslot.operatorId;
+    aTS.timeslotId = assignedTimeslot.timeslotId;
+  });
+  showAddOperatorModal();
+  // TODO verificare che i calcoli siano corretti
+  planStore.plan.planStatistics = calculatePlanStatistics(operatorStore.operators, timeslotStore.timeslots, planStore.plan.monthPlans);
+}
+
+function showAddOperatorModal() {
+  editTimeslotModal.value?.showModal();
+}
+
+function hideAddOperatorModal() {
+  editTimeslotModal.value?.close();
+}
 
 </script>
 <template>
@@ -33,7 +60,7 @@ const planStore = usePlanStore();
                 <div
                   class="relative font-bold w-full h-6 pl-1 text-white cursor-pointer"
                   v-for="slot in day.plan"
-                  @click="() => {}">
+                  @click="() => editAssignedTimeslot(slot, day)">
                     <div
                       class="absolute top-0 left-0 z-10 w-full h-full":style="'background-color: ' + operatorStore.operators.find(o => o.id === slot.operatorId)?.color"></div>
                     <span class="absolute z-20" v-if="day.isStartOfRound">{{ operatorStore.operators.find(o => o.id === slot.operatorId)?.name }}</span>
@@ -53,4 +80,21 @@ const planStore = usePlanStore();
       </div>
     </div>
   </div>
-</template>../model/MonthPlan
+
+  <dialog ref="editTimeslotModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+      </form>
+      <h3 class="font-bold text-lg">Modifica turno</h3>
+
+      <div class="py-4">
+        
+      </div>
+
+      <div class="modal-action">
+        <button class="btn btn-primary">Modifica</button>
+      </div>
+    </div>
+  </dialog>
+</template>

@@ -22,7 +22,7 @@ export function generatePlan(operators: Operator[], unsortedTimeslots: Timeslot[
     while(daysPlanned < (weeksToPlan * 7)) {
         monthPlan.workDays.push({
             date: day.date(),
-            plan: weekPlan,
+            plan: weekPlan.map(aTS => {return {... aTS}}),
             isOff: offDays.includes(day.day()),
             isStartOfRound: day.day() === startOfRoundDay || daysPlanned === 0,
         });
@@ -150,7 +150,7 @@ function containsNotAssignableTimeslot(weekPlan: AssignedTimeslot[], operators: 
     return false;
 }
 
-function calculatePlanStatistics(operators: Operator[], timeslots: Timeslot[], monthPlans: MonthPlan[]): PlanStatistics  {
+export function calculatePlanStatistics(operators: Operator[], timeslots: Timeslot[], monthPlans: MonthPlan[]): PlanStatistics  {
     const statistics: PlanStatistics = {
         operatorsWorkingHours: []
     };

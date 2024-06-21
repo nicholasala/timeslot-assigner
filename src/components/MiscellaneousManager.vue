@@ -56,7 +56,7 @@ onMounted(resetDialogData);
 
 <template>
   <div class="p-4">
-    <h1 class="text-xl font-bold">Varie</h1>
+    <h1 class="text-xl font-bold">Varie impostazioni</h1>
 
     <div class="py-4">
       <span class="block">Nome attivitá: {{ miscellaneousStore.activityName }}</span>
