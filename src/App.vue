@@ -26,7 +26,7 @@ function startPlanGeneration() {
     return;
 
   const plan = generatePlan(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, miscellaneousStore.weeksToPlan);
-  planStore.updatePlan(plan);
+  planStore.setPlan(plan);
   showPrintButton.value = true;
 }
 

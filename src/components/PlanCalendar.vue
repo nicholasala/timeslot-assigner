@@ -8,29 +8,45 @@ import type { AssignedTimeslot } from '@/model/AssignedTimeslot';
 import type { WorkDay } from '@/model/WorkDay';
 import { useTimeslotStore } from '@/stores/timeslot';
 import { calculatePlanStatistics } from '@/utils/planGenerator';
+import type { Operator } from '@/model/Operator';
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const planStore = usePlanStore();
+const operatorSelect = ref(null);
+const editAssignedTimeslot = ref({} as AssignedTimeslot);
 const editTimeslotModal = ref(null);
+const assignedTimeslotName = ref('');
+const assignedTimeslotDate = ref('');
+const assignableOperators = ref([] as Operator[]);
 
-function editAssignedTimeslot(assignedTimeslot: AssignedTimeslot, workDay: WorkDay) {
-  console.log('Modifico', assignedTimeslot.operatorId, assignedTimeslot.timeslotId);
-  console.log('Nel giorno', workDay.date);
-  workDay.plan.forEach(aTS => {
-    aTS.operatorId = assignedTimeslot.operatorId;
-    aTS.timeslotId = assignedTimeslot.timeslotId;
-  });
-  showAddOperatorModal();
-  // TODO verificare che i calcoli siano corretti
-  planStore.plan.planStatistics = calculatePlanStatistics(operatorStore.operators, timeslotStore.timeslots, planStore.plan.monthPlans);
+function startAssignedTimeslotEditing(assignedTimeslot: AssignedTimeslot, workDay: WorkDay, monthName: string) {
+  const timeslot = timeslotStore.timeslots.find(t => t.id === assignedTimeslot.timeslotId);
+  const filteredOperators = operatorStore.operators.filter(o => o.id !== assignedTimeslot.operatorId);
+
+  if(timeslot) {
+    assignedTimeslotName.value = timeslot.name;
+    assignedTimeslotDate.value = `${workDay.date} ${monthName}`;
+    assignableOperators.value = filteredOperators;
+    editAssignedTimeslot.value = assignedTimeslot;
+    showEditTimeslotModal();
+  }
 }
 
-function showAddOperatorModal() {
+function editTimeslotAssignment() {
+  if(operatorSelect.value && +operatorSelect.value?.value > 0) {
+    editAssignedTimeslot.value.operatorId = +operatorSelect.value?.value;
+    planStore.setPlanStatistics(calculatePlanStatistics(operatorStore.operators, timeslotStore.timeslots, planStore.plan.monthPlans));
+  }
+
+  hideEditTimeslotModal();
+}
+
+function showEditTimeslotModal() {
   editTimeslotModal.value?.showModal();
 }
 
-function hideAddOperatorModal() {
+function hideEditTimeslotModal() {
   editTimeslotModal.value?.close();
 }
 
@@ -60,9 +76,10 @@ function hideAddOperatorModal() {
                 <div
                   class="relative font-bold w-full h-6 pl-1 text-white cursor-pointer"
                   v-for="slot in day.plan"
-                  @click="() => editAssignedTimeslot(slot, day)">
+                  @click="() => startAssignedTimeslotEditing(slot, day, monthPlan.monthName)">
                     <div
-                      class="absolute top-0 left-0 z-10 w-full h-full":style="'background-color: ' + operatorStore.operators.find(o => o.id === slot.operatorId)?.color"></div>
+                      class="absolute top-0 left-0 z-10 w-full h-full hover:border-4 hover:border-cyan-300"
+                      :style="'background-color: ' + operatorStore.operators.find(o => o.id === slot.operatorId)?.color"></div>
                     <span class="absolute z-20" v-if="day.isStartOfRound">{{ operatorStore.operators.find(o => o.id === slot.operatorId)?.name }}</span>
                 </div>
               </div>
@@ -86,14 +103,20 @@ function hideAddOperatorModal() {
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
       </form>
-      <h3 class="font-bold text-lg">Modifica turno</h3>
+      <h3 class="font-bold text-lg">Cambia operatore</h3>
 
       <div class="py-4">
-        
+        <span class="block mb-2">
+          Assegna il turno <span class="font-bold">{{ assignedTimeslotName }}</span> del giorno <span class="font-bold">{{ assignedTimeslotDate }}</span> all'operatore:
+        </span>
+        <select ref="operatorSelect" class="select select-bordered w-full max-w-xs">
+          <option disabled selected value="0">Scegli operatore</option>
+          <option v-for="o in assignableOperators" :value="o.id">{{ o.name }}</option>
+        </select>
       </div>
 
       <div class="modal-action">
-        <button class="btn btn-primary">Modifica</button>
+        <button class="btn btn-primary" @click="editTimeslotAssignment">Modifica</button>
       </div>
     </div>
   </dialog>
