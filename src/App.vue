@@ -11,16 +11,14 @@ import { usePlanStore } from './stores/plan';
 import PlanCalendar from './components/PlanCalendar.vue';
 import PlanOverview from './components/PlanOverview.vue';
 import MiscellaneousManager from './components/MiscellaneousManager.vue';
-
-// TODO click su turno permette di invertirlo con un altro operatore in quella settimana
-// TODO impostazione dei giorni di ferie per ogni operatore
-// TODO scelta del giorno di partenza (default oggi)
+import { ref } from 'vue';
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
 const offDaysStore = useOffDaysStore();
 const miscellaneousStore = useMiscellaneousStore();
 const planStore = usePlanStore();
+const showPrintButton = ref(true);
 
 function startPlanGeneration() {
   // TODO andrá notificato all'utente l'errore
@@ -29,10 +27,13 @@ function startPlanGeneration() {
 
   const plan = generatePlan(operatorStore.operators, timeslotStore.timeslots, offDaysStore.offDays, miscellaneousStore.weeksToPlan);
   planStore.updatePlan(plan);
+  showPrintButton.value = true;
 }
 
 function printPlan() {
-  print();
+  showPrintButton.value = false;
+  setTimeout(print, 400);
+  setTimeout(() => { showPrintButton.value = true }, 2000);
 }
 
 </script>
@@ -58,7 +59,7 @@ function printPlan() {
         @click="startPlanGeneration">
           Genera pianificazione
       </button>
-      <button v-if="planStore.plan.monthPlans" class="btn btn-primary m-2" @click="printPlan">Stampa</button>
+      <button v-if="planStore.plan.monthPlans && showPrintButton" class="btn btn-primary m-2" @click="printPlan">Stampa</button>
     </div>
 
     <div v-if="planStore.plan.monthPlans">
