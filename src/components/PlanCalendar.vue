@@ -40,6 +40,7 @@ function editTimeslotAssignment() {
   }
 
   hideEditTimeslotModal();
+  cleanDialogData();
 }
 
 function showEditTimeslotModal() {
@@ -48,6 +49,13 @@ function showEditTimeslotModal() {
 
 function hideEditTimeslotModal() {
   editTimeslotModal.value?.close();
+}
+
+function cleanDialogData() {
+  if(operatorSelect.value) operatorSelect.value.value = '0';
+  editAssignedTimeslot.value = {} as AssignedTimeslot;
+  assignedTimeslotName.value = '';
+  assignedTimeslotDate.value = '';
 }
 
 </script>

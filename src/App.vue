@@ -87,7 +87,7 @@ onMounted(showShowVersionInfoModal);
             La nuova versione é ora attiva! Le novitá sono le seguenti:
           </span>
           <ul class="list-disc mb-2">
-            <li>É ora possibile modificare il turno di un giorno nella pianificazione cliccando sul turno e assegnandolo a un operatore diverso</li>
+            <li>É ora possibile cambiare l'operatore assegnato ad un turno nella pianificazione cliccando sul turno e scegliendo un operatore diverso</li>
             <li>É ora possibile modificare il nome dell'attivitá che verrá mostrato in alto nella fascia verde nella sezione "Varie impostazioni"</li>
             <li>É ora possibile scegliere il numero di settimane da pianificare nella sezione "Varie impostazioni"</li>
           </ul>
