@@ -11,7 +11,7 @@ import { usePlanStore } from './stores/plan';
 import PlanCalendar from './components/PlanCalendar.vue';
 import PlanOverview from './components/PlanOverview.vue';
 import MiscellaneousManager from './components/MiscellaneousManager.vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const operatorStore = useOperatorStore();
 const timeslotStore = useTimeslotStore();
@@ -19,6 +19,7 @@ const offDaysStore = useOffDaysStore();
 const miscellaneousStore = useMiscellaneousStore();
 const planStore = usePlanStore();
 const showPrintButton = ref(true);
+const showVersionInfoModal = ref(null);
 
 function startPlanGeneration() {
   // TODO andrá notificato all'utente l'errore
@@ -35,6 +36,16 @@ function printPlan() {
   setTimeout(print, 400);
   setTimeout(() => { showPrintButton.value = true }, 2000);
 }
+
+function showShowVersionInfoModal() {
+  showVersionInfoModal.value?.showModal();
+}
+
+function hideshowVersionInfoModal() {
+  showVersionInfoModal.value?.close();
+}
+
+onMounted(showShowVersionInfoModal);
 
 </script>
 
@@ -66,5 +77,31 @@ function printPlan() {
       <PlanOverview/>
       <PlanCalendar/>
     </div>
+
+    <dialog ref="showVersionInfoModal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h5 class="font-bold text-xl text-green-600">Versione 0.0.1!</h5>
+
+        <div class="py-4">
+          <span class="block mb-2">
+            La nuova versione é ora attiva! Le novitá sono le seguenti:
+          </span>
+          <ul class="list-disc mb-2">
+            <li>É ora possibile modificare il turno di un giorno nella pianificazione cliccando sul turno e assegnandolo a un operatore diverso</li>
+            <li>É ora possibile modificare il nome dell'attivitá che verrá mostrato in alto nella fascia verde nella sezione "Varie impostazioni"</li>
+            <li>É ora possibile scegliere il numero di settimane da pianificare nella sezione "Varie impostazioni"</li>
+          </ul>
+          <span class="block">
+            Buon divertimento! Per qualsiasi dubbio, per consigliare un miglioramento o per segnalare un bug contatta: <a href="mailto:beren.14@proton.me">beren.14@proton.me</a>
+          </span>
+        </div>
+
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-primary">Letto</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
   </main>
 </template>
