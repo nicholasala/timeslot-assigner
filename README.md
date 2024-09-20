@@ -1,45 +1,10 @@
-# timeslot-assigner
+# Timeslot Assigner
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue application with the aim of creating a simple company schedule for companies like a bar with multiple bartenders and multiple shifts between bartenders. The application allow to:
 
-## Recommended IDE Setup
+1. Insert the shifts
+2. Insert the operators
+3. Insert off days
+4. Insert other settings like the name of the company and the number of weeks to schedule
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+The result is a schedule displayed on a calendar in which each operator is assigned to a shift and each week the operators rotate to new shifts.
